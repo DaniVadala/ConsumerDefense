@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Shield, Menu, X, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 
 const ORGANISMOS = [
   { label: 'Defensa del Consumidor', href: 'https://www.argentina.gob.ar/produccion/defensadelconsumidor' },
@@ -21,9 +21,9 @@ const LEYES = [
   { label: 'Ley 24.999 – Reform. Def. Consumidor', href: 'https://servicios.infoleg.gob.ar/infolegInternet/anexos/45000-49999/48872/norma.htm' },
 ];
 
-const dropdownVariants = {
+const dropdownVariants: Variants = {
   hidden: { opacity: 0, y: -6, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.18, ease: 'easeOut' } },
   exit: { opacity: 0, y: -4, scale: 0.97, transition: { duration: 0.12 } },
 };
 
