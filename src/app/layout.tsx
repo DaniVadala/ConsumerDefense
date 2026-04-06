@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Theme } from "@radix-ui/themes";
+import { LocaleProvider } from "@/lib/i18n/context";
 import "@radix-ui/themes/styles.css";
+import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,7 +43,9 @@ export default function RootLayout({
     >
       <body>
         <Theme accentColor="green" grayColor="slate" radius="medium" scaling="100%">
-          {children}
+          <LocaleProvider>
+            {children}
+          </LocaleProvider>
         </Theme>
       </body>
     </html>

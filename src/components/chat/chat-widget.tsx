@@ -5,7 +5,9 @@ import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, Button, IconButton, ScrollArea, TextField } from '@radix-ui/themes';
 import { Send, User, Shield } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DiagnosticCard } from './diagnostic-card';
+import { useLocale } from '@/lib/i18n/context';
 import type { UIMessage } from 'ai';
 
 const chatTransport = new DefaultChatTransport({ api: '/api/chat' });
@@ -53,13 +55,13 @@ function BotAvatar() {
   );
 }
 
-function TypingIndicator() {
+function TypingIndicator({ label }: { label: string }) {
   return (
     <div className="flex items-end gap-2 mb-4">
       <BotAvatar />
       <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 text-sm shadow-sm" style={{ border: '1px solid var(--slate-4)', color: 'var(--slate-11)' }}>
         <span className="flex items-center gap-2">
-          <span className="text-xs" style={{ color: 'var(--slate-9)' }}>DefensaYa está escribiendo</span>
+          <span className="text-xs" style={{ color: 'var(--slate-9)' }}>{label}</span>
           <span className="flex gap-0.5">
             <span className="animate-bounce w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--accent-9)', animationDelay: '0ms' }} />
             <span className="animate-bounce w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--accent-9)', animationDelay: '150ms' }} />
@@ -71,34 +73,50 @@ function TypingIndicator() {
   );
 }
 
-const WELCOME_MESSAGE =
-  '¡Hola! Soy DefensaYa 🤖 Contame qué problema tuviste con alguna empresa, banco o servicio, y te ayudo a entender qué podés hacer.';
-
-const QUICK_SUGGESTIONS = [
-  'Me cobraron de más',
-  'No me dieron el producto',
-  'Problema con garantía',
-  'Cancelaron mi vuelo',
-];
+function useTypewriter(text: string, speed = 22) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    setDisplayed('');
+    setDone(false);
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(id);
+        setDone(true);
+      }
+    }, speed);
+    return () => clearInterval(id);
+  }, [text, speed]);
+  return { displayed, done };
+}
 
 export function ChatWidget() {
+  const { t } = useLocale();
   const { messages, sendMessage, status } = useChat({
     transport: chatTransport,
   });
 
   const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [inputFocused, setInputFocused] = useState(false);
   const isLoading = status === 'submitted' || status === 'streaming';
+  const { displayed: welcomeText, done: welcomeDone } = useTypewriter(t.chat.welcome, 22);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const prevMessagesLen = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
 
+  const scrollToBottom = () => {
+    const el = scrollViewportRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  };
+
+  // Scroll when new messages arrive or while streaming (content grows)
   useEffect(() => {
-    if (messages.length > prevMessagesLen.current) {
-      prevMessagesLen.current = messages.length;
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, isLoading]);
 
   const handleSend = (text?: string) => {
     const message = (text ?? input).trim();
@@ -108,8 +126,16 @@ export function ChatWidget() {
     sendMessage({ text: message });
   };
 
+  const focusInput = () => containerRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+
   return (
-    <div className="flex flex-col h-full rounded-2xl overflow-hidden" style={{ background: 'white', border: '1px solid var(--slate-4)', boxShadow: '0 20px 40px -12px rgb(0 0 0 / 0.12)' }}>
+    <div
+      ref={containerRef}
+      className={`flex flex-col h-full rounded-2xl overflow-hidden transition-shadow duration-300 ${
+        inputFocused ? 'shadow-[0_0_0_3px_rgba(16,185,129,0.45),0_20px_40px_-12px_rgb(0_0_0/0.18)]' : ''
+      }`}
+      style={{ background: 'white', border: '1px solid var(--slate-4)', boxShadow: inputFocused ? undefined : '0 20px 40px -12px rgb(0 0 0 / 0.12)' }}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 flex-shrink-0 text-white" style={{ background: 'linear-gradient(135deg, var(--accent-9), var(--teal-9))' }}>
         <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center ring-2 ring-white/30">
@@ -117,29 +143,37 @@ export function ChatWidget() {
         </div>
         <div>
           <p className="font-bold text-sm leading-tight">DefensaYa</p>
-          <p className="text-white/80 text-xs">Orientación gratuita al consumidor</p>
+          <p className="text-white/80 text-xs">{t.chat.subtitle}</p>
         </div>
-        <div className="ml-auto flex items-center gap-2 rounded-full px-3 py-1" style={{ background: 'rgba(255,255,255,0.15)' }}>
-          <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: 'var(--green-4)' }} />
-          <span className="text-xs text-white/90 font-medium">En línea</span>
+        <div className="ml-auto flex items-center gap-2 rounded-full px-3 py-1 transition-colors duration-300" style={{ background: 'rgba(255,255,255,0.15)' }}>
+          <div
+            className="w-2.5 h-2.5 rounded-full animate-pulse"
+            style={{ background: inputFocused ? '#ef4444' : 'var(--green-4)', transition: 'background 0.3s' }}
+          />
+          <span className="text-xs text-white/90 font-medium transition-all duration-300">
+            {inputFocused ? 'En vivo' : 'En línea'}
+          </span>
         </div>
       </div>
 
       {/* Messages area */}
-      <ScrollArea className="flex-1" style={{ minHeight: 0, background: 'var(--slate-2)' }}>
+      <ScrollArea ref={scrollViewportRef} className="flex-1" style={{ minHeight: 0, background: 'var(--slate-2)' }} scrollbars="vertical">
         <div className="px-4 py-5">
           {/* Welcome message */}
           <div className="flex items-end gap-2 mb-4">
             <BotAvatar />
             <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 text-sm max-w-[85%] leading-relaxed shadow-sm" style={{ border: '1px solid var(--slate-4)', color: 'var(--slate-12)' }}>
-              {WELCOME_MESSAGE}
+              {welcomeText}
+              {!welcomeDone && (
+                <span className="inline-block w-0.5 h-3.5 bg-current align-middle ml-0.5 animate-[blink_0.9s_step-end_infinite]" />
+              )}
             </div>
           </div>
 
           {/* Quick-suggestion chips */}
           {showSuggestions && messages.length === 0 && (
             <div className="flex flex-wrap gap-2 mb-5 pl-10">
-              {QUICK_SUGGESTIONS.map((suggestion) => (
+              {t.chat.suggestions.map((suggestion) => (
                 <Button
                   key={suggestion}
                   size="1"
@@ -189,32 +223,46 @@ export function ChatWidget() {
             );
           })}
 
-          {isLoading && <TypingIndicator />}
-          <div ref={bottomRef} />
+          {isLoading && <TypingIndicator label={t.chat.typing} />}
         </div>
       </ScrollArea>
 
+      {/* Hint bar — visible before first message, inside the card */}
+      <AnimatePresence>
+        {showSuggestions && messages.length === 0 && (
+          <motion.div
+            key="hint"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 2.5, duration: 0.5 }}
+            className="flex-shrink-0 flex justify-center py-2 bg-slate-50 border-t border-slate-100"
+          >
+            <button
+              onClick={focusInput}
+              className="text-xs text-slate-400 flex items-center gap-1.5 hover:text-slate-600 transition-colors"
+            >
+              <span className="animate-bounce inline-block">👇</span>
+              {t.chat.hintText}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Input area */}
-      <style>{`
-        @keyframes input-pulse {
-          0%, 100% { box-shadow: 0 0 0 1.5px rgba(148, 163, 184, 0.6), 0 0 0 0px rgba(16, 185, 129, 0); }
-          50% { box-shadow: 0 0 0 1.5px rgba(16, 185, 129, 0.6), 0 0 8px 2px rgba(16, 185, 129, 0.15); }
-        }
-        .input-heartbeat:not(:focus-within) {
-          animation: input-pulse 2.4s ease-in-out infinite;
-        }
-      `}</style>
       <div className="flex-shrink-0 px-4 py-3 bg-white" style={{ borderTop: '1px solid var(--slate-4)' }}>
         <div className="flex items-center gap-2">
           <TextField.Root
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Contame tu problema..."
+            placeholder={t.chat.placeholder}
             disabled={isLoading}
             radius="full"
             size="3"
             className="input-heartbeat"
             style={{ flex: 1 }}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

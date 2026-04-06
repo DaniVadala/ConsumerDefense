@@ -22,8 +22,25 @@
   to   { background-position: -30px 30px; }
 }
 
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes input-pulse {
+  0%, 100% { box-shadow: 0 0 0 1.5px rgba(148, 163, 184, 0.6), 0 0 0 0px rgba(16, 185, 129, 0); }
+  50% { box-shadow: 0 0 0 1.5px rgba(16, 185, 129, 0.6), 0 0 8px 2px rgba(16, 185, 129, 0.15); }
+}
+
+.input-heartbeat:not(:focus-within) {
+  animation: input-pulse 2.4s ease-in-out infinite;
+}
+
 @layer utilities {
   .animate-dot-drift {
     animation: dot-drift 20s linear infinite;
+  }
+  .dot-drift-anim {
+    animation: dot-drift 2.5s linear infinite;
   }
 }

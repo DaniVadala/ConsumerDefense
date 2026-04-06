@@ -1,0 +1,215 @@
+export type Lang = 'es' | 'en';
+
+const es = {
+  header: {
+    howItWorks: '¿Cómo funciona?',
+    startFree: 'Empezá gratis',
+  },
+  hero: {
+    headline1: '¿No te respetan',
+    headline2: 'como consumidor?',
+    subtitle: 'Entendé tus derechos como consumidor argentino y actuá de inmediato.',
+    pillImmediate: 'Respuesta inmediata',
+    pillConfidential: 'Confidencial',
+    pillFree: 'Análisis gratis',
+    ctaButton: 'Empezá tu diagnóstico gratis',
+    ctaSubtext: 'Sin registro · Resultado en segundos',
+    waLink: 'o escribinos por WhatsApp',
+  },
+  steps: {
+    pill: 'El chatbot · Paso a paso',
+    title: '¿Cómo funciona el diagnóstico?',
+    subtitle:
+      'Contanos tu caso en el chat y recibís un diagnóstico inicial en minutos. Sin tecnicismos, sin datos personales.',
+    steps: [
+      {
+        title: 'Contanos tu problema',
+        description: 'Escribí lo que pasó como si le contaras a un amigo. Sin tecnicismos.',
+        time: '~1 min',
+      },
+      {
+        title: 'Recibí un diagnóstico inicial',
+        description:
+          'La IA analiza tu caso y te explica qué opciones tenés. Es el primer paso antes del abogado.',
+        time: '~2 min',
+      },
+      {
+        title: 'Te conectamos con un abogado',
+        description:
+          'Si querés avanzar, un especialista revisa tu caso y te da el dictamen definitivo para actuar.',
+        time: 'Mismo día',
+      },
+    ],
+  },
+  trust: {
+    pill: '¿Por qué confiar en DefensaYa?',
+    title: 'Tecnología legal, transparente y sin letra chica',
+    signals: [
+      { title: 'Ley 24.240', description: 'Diagnósticos basados en la Ley de Defensa del Consumidor vigente.' },
+      { title: 'IA entrenada en legislación', description: 'Modelo entrenado con jurisprudencia y normativas de organismos oficiales argentinos.' },
+      { title: 'Confidencial y seguro', description: 'Tu consulta no se almacena ni se comparte. Sin registro previo.' },
+      { title: 'Respaldado por abogados', description: 'Cada diagnóstico puede ser revisado por profesionales matriculados.' },
+      { title: 'Diagnóstico en minutos', description: 'Recibí una orientación legal inicial en menos de 3 minutos.' },
+      { title: 'Sin costo ni compromiso', description: 'El diagnóstico inicial es 100% gratuito. Pagás solo si decidís avanzar.' },
+    ],
+  },
+  info: {
+    pill: 'Múltiples canales',
+    title: 'Elegí cómo empezar',
+    subtitle: 'Solo o con ayuda, respondemos en minutos.',
+    aiTitle: 'Diagnóstico inicial con IA',
+    aiBadge: 'Gratis',
+    aiDesc: 'Resultado inmediato, sin datos, sin esperas.',
+    waTitle: 'WhatsApp',
+    waBadge: 'Recomendado',
+    waDesc: 'Hablá directo con un abogado. Respondemos ya.',
+    emailTitle: 'Email',
+    emailDesc: 'Respondemos por escrito en el día.',
+    formTitle: 'Dejá tus datos',
+    formDesc: 'Completá el formulario y te llamamos.',
+    waMessage: 'Hola! Tengo un problema de consumo y quiero orientacion',
+    mailSubject: 'Consulta DefensaYa',
+    mailBody: 'Hola, tengo un problema de consumo...',
+    fabTooltipTitle: '¿Preferís WhatsApp?',
+    fabTooltipDesc: 'Escribinos directo, respondemos en minutos.',
+  },
+  chat: {
+    subtitle: 'Orientación gratuita al consumidor',
+    online: 'En línea',
+    live: 'En vivo',
+    typing: 'DefensaYa está escribiendo',
+    placeholder: 'Contame tu problema...',
+    hintText: 'Escribí tu consulta acá · gratis y confidencial',
+    welcome:
+      '¡Hola! Soy DefensaYa 🤖 Contame qué problema tuviste con alguna empresa, banco o servicio, y te ayudo a entender qué podés hacer.',
+    suggestions: [
+      'Me cobraron de más en la tarjeta',
+      'No respetan la garantía del producto',
+      'Internet o celular no funciona y no me dan solución',
+      'Cancelaron mi vuelo o viaje',
+    ],
+  },
+  footer: {
+    tagline:
+      'Orientación gratuita al consumidor argentino. Diagnóstico inmediato con IA, sin registro.',
+    orgsHeading: 'Organismos',
+    legalHeading: 'Marco Legal',
+    legalLinksHeading: 'Legal',
+    privacyPolicy: 'Política de privacidad',
+    termsOfUse: 'Términos de uso',
+    legalNotice: 'Aviso legal',
+    disclaimerLabel: 'Aviso legal:',
+    disclaimerText:
+      'DefensaYa es un servicio de orientación automatizada y no constituye asesoramiento legal profesional. La información proporcionada es de carácter informativo y no reemplaza la consulta con un abogado matriculado.',
+    copyright: 'Buenos Aires, Argentina',
+  },
+};
+
+export type Translations = typeof es;
+
+export const translations: Record<Lang, Translations> = {
+  es,
+  en: {
+    header: {
+      howItWorks: 'How it works',
+      startFree: 'Start free',
+    },
+    hero: {
+      headline1: 'Is a company',
+      headline2: 'ignoring your rights?',
+      subtitle: 'Understand your consumer rights in Argentina and take action right away.',
+      pillImmediate: 'Instant response',
+      pillConfidential: 'Confidential',
+      pillFree: 'Free analysis',
+      ctaButton: 'Start your free diagnosis',
+      ctaSubtext: 'No signup · Result in seconds',
+      waLink: 'or message us on WhatsApp',
+    },
+    steps: {
+      pill: 'The chatbot · Step by step',
+      title: 'How does the diagnosis work?',
+      subtitle:
+        'Tell us your case and get an initial diagnosis in minutes. No jargon, no personal data required.',
+      steps: [
+        {
+          title: 'Tell us your problem',
+          description: 'Describe what happened as if explaining to a friend. No legal jargon.',
+          time: '~1 min',
+        },
+        {
+          title: 'Get an initial diagnosis',
+          description:
+            'The AI reviews your case and explains your options — a first step before hiring a lawyer.',
+          time: '~2 min',
+        },
+        {
+          title: "We'll connect you with a lawyer",
+          description:
+            'If you want to proceed, a specialist reviews your case and provides a professional opinion.',
+          time: 'Same day',
+        },
+      ],
+    },
+    trust: {
+      pill: 'Why trust DefensaYa?',
+      title: 'Legal technology, transparent and clear',
+      signals: [
+        { title: 'Law 24.240', description: "Diagnoses based on Argentina's Consumer Protection Law." },
+        { title: 'AI trained on legislation', description: 'Model trained on case law and regulations from official Argentine agencies.' },
+        { title: 'Confidential & secure', description: 'Your query is never stored or shared. No prior registration required.' },
+        { title: 'Backed by lawyers', description: 'Every diagnosis can be reviewed by a registered attorney.' },
+        { title: 'Diagnosis in minutes', description: 'Get initial legal guidance in under 3 minutes.' },
+        { title: 'No cost, no commitment', description: 'The initial diagnosis is 100% free. You only pay if you decide to proceed.' },
+      ],
+    },
+    info: {
+      pill: 'Multiple channels',
+      title: 'Choose how to start',
+      subtitle: 'On your own or with help, we respond in minutes.',
+      aiTitle: 'Initial AI diagnosis',
+      aiBadge: 'Free',
+      aiDesc: 'Immediate result, no data required, no waiting.',
+      waTitle: 'WhatsApp',
+      waBadge: 'Recommended',
+      waDesc: 'Talk directly with an advisor. We respond right away.',
+      emailTitle: 'Email',
+      emailDesc: 'We reply in writing within the day.',
+      formTitle: 'Leave your details',
+      formDesc: "Fill out the form and we'll call you.",
+      waMessage: 'Hi! I have a consumer issue and need guidance',
+      mailSubject: 'DefensaYa Inquiry',
+      mailBody: 'Hello, I have a consumer issue...',
+      fabTooltipTitle: 'Prefer WhatsApp?',
+      fabTooltipDesc: 'Message us directly, we respond in minutes.',
+    },
+    chat: {
+      subtitle: 'Free consumer guidance',
+      online: 'Online',
+      live: 'Live',
+      typing: 'DefensaYa is typing',
+      placeholder: 'Tell me your problem...',
+      hintText: 'Type your question here · free & confidential',
+      welcome:
+        "Hi! I'm DefensaYa 🤖 Tell me what problem you had with a company, bank or service, and I'll help you understand what you can do.",
+      suggestions: [
+        'I was overcharged on my credit card',
+        'My product warranty is not being honored',
+        'Internet or phone service keeps failing',
+        'My flight or trip was cancelled',
+      ],
+    },
+    footer: {
+      tagline: 'Free consumer guidance for Argentina. Immediate AI diagnosis, no registration.',
+      orgsHeading: 'Agencies',
+      legalHeading: 'Legal Framework',
+      legalLinksHeading: 'Legal',
+      privacyPolicy: 'Privacy policy',
+      termsOfUse: 'Terms of use',
+      legalNotice: 'Legal notice',
+      disclaimerLabel: 'Legal notice:',
+      disclaimerText:
+        'DefensaYa is an automated guidance service and does not constitute professional legal advice. The information provided is for general guidance only and does not replace consultation with a licensed attorney.',
+      copyright: 'Buenos Aires, Argentina',
+    },
+  },
+};
