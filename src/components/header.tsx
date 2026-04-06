@@ -10,9 +10,10 @@ function scrollTo(id: string) {
 }
 
 function focusChat() {
-  scrollTo('chat');
+  const widget = document.getElementById('chat-widget');
+  widget?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   setTimeout(() => {
-    document.querySelector<HTMLInputElement>('#chat input')?.focus();
+    document.getElementById('chat-input')?.focus();
   }, 600);
 }
 

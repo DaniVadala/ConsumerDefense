@@ -136,6 +136,7 @@ export function ChatWidget() {
 
   return (
     <div
+      id="chat-widget"
       ref={containerRef}
       className={`flex flex-col h-full rounded-2xl overflow-hidden transition-shadow duration-300 ${
         inputFocused ? 'shadow-[0_0_0_3px_rgba(16,185,129,0.45),0_20px_40px_-12px_rgb(0_0_0/0.18)]' : ''
@@ -262,6 +263,7 @@ export function ChatWidget() {
       <div className="flex-shrink-0 px-4 py-3 bg-white" style={{ borderTop: '1px solid var(--slate-4)' }}>
         <div className="flex items-end gap-2">
           <textarea
+            id="chat-input"
             ref={textareaRef}
             value={input}
             onChange={(e) => {

@@ -101,8 +101,8 @@ export function Hero() {
           <motion.div {...fadeUp(0.42)} className="flex flex-col items-center gap-1.5">
             <button
               onClick={() => {
-                document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' });
-                setTimeout(() => document.querySelector<HTMLInputElement>('#chat input')?.focus(), 600);
+                document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => document.getElementById('chat-input')?.focus(), 600);
               }}
               className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
             >
@@ -175,10 +175,9 @@ export function Hero() {
                 <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-1">
                   <button
                     onClick={() => {
-                      document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                       setTimeout(() => {
-                        const inp = document.querySelector<HTMLInputElement>('#chat input');
-                        inp?.focus();
+                        document.getElementById('chat-input')?.focus();
                       }, 600);
                     }}
                     className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
