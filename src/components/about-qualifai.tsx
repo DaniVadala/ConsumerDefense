@@ -25,7 +25,7 @@ export function AboutQualifAI() {
   return (
     <section
       id="qualifai"
-      aria-label="Sobre QualifAI"
+      aria-label="Sobre SyndesiX"
       className="scroll-mt-16 bg-gradient-to-b from-white to-slate-50 border-t border-slate-100"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
@@ -44,7 +44,11 @@ export function AboutQualifAI() {
               {...fadeUp(0.08)}
               className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight mb-5"
             >
-              {t.about.title}
+              {t.about.title.replace('SyndesiX', '').replace('?', '').trim()}{' '}
+              <span className="text-emerald-500">Syn</span>
+              <span className="text-sky-500">desi</span>
+              <span className="text-amber-500">X</span>
+              ?
             </motion.h2>
 
             <motion.p
@@ -55,7 +59,7 @@ export function AboutQualifAI() {
             </motion.p>
           </div>
 
-          {/* Right — QualifAI brand card + stats */}
+          {/* Right — SyndesiX brand card + stats */}
           <div className="flex flex-col gap-4">
 
             {/* Brand card */}
@@ -77,7 +81,11 @@ export function AboutQualifAI() {
                     <Cpu className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-white font-bold text-lg leading-none">QualifAI</p>
+                    <p className="text-white font-bold text-lg leading-none">
+                      <span className="text-emerald-400">Syn</span>
+                      <span className="text-sky-300">desi</span>
+                      <span className="text-amber-400">X</span>
+                    </p>
                     <p className="text-emerald-300/70 text-[11px] mt-0.5">AI-Powered Professional Matching</p>
                   </div>
                 </div>

@@ -47,7 +47,7 @@ export function Header() {
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-lg tracking-tight leading-none">DefensaYa</span>
-            <span className={`text-[10px] font-normal tracking-wide leading-none mt-0.5 ${ scrolled ? 'text-gray-400' : 'text-white/45' }`}>by QualifAI</span>
+            <span className={`text-[10px] font-normal tracking-wide leading-none mt-0.5 ${ scrolled ? 'text-gray-400' : 'text-white/45' }`}>by SyndesiX</span>
           </div>
         </a>
 
