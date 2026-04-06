@@ -44,7 +44,10 @@ export function Header() {
           <div className="w-8 h-8 bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] rounded-lg flex items-center justify-center shadow-sm">
             <Shield className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg tracking-tight">DefensaYa</span>
+          <div className="flex flex-col leading-none">
+            <span className="text-lg tracking-tight leading-none">DefensaYa</span>
+            <span className={`text-[10px] font-normal tracking-wide leading-none mt-0.5 ${ scrolled ? 'text-gray-400' : 'text-white/45' }`}>by QualifAI</span>
+          </div>
         </a>
 
         {/* Desktop nav */}
@@ -57,6 +60,15 @@ export function Header() {
           >
             {t.header.howItWorks}
           </button>
+          <button
+            onClick={() => scrollTo('qualifai')}
+            className={`text-sm font-medium transition-colors ${
+              scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
+            }`}
+          >
+            {t.header.aboutUs}
+          </button>
+          {/* TODO: Link a página QualifAI cuando exista */}
 
           {/* Language selector */}
           <div className="flex items-center gap-1 text-sm font-semibold">
@@ -112,6 +124,13 @@ export function Header() {
           >
             {t.header.howItWorks}
           </button>
+          <button
+            className="block w-full text-left text-sm text-gray-700 font-medium py-2 hover:text-[var(--accent-9)] transition-colors"
+            onClick={() => { setMobileOpen(false); scrollTo('qualifai'); }}
+          >
+            {t.header.aboutUs}
+          </button>
+          {/* TODO: Link a página QualifAI cuando exista */}
           {/* Language selector — mobile */}
           <div className="flex items-center gap-2 py-1">
             <span className="text-xs text-gray-400 font-medium">Idioma / Language:</span>

@@ -3,7 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState } from 'react';
-import { Avatar, Button, IconButton, ScrollArea, TextField } from '@radix-ui/themes';
+import { Avatar, Button, IconButton, ScrollArea } from '@radix-ui/themes';
 import { Send, User, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DiagnosticCard } from './diagnostic-card';
@@ -16,10 +16,10 @@ interface DiagnosticData {
   diagnostic: true;
   category: string;
   provider: string;
-  viability: 'ALTA' | 'MEDIA' | 'BAJA';
+  relevance: 'RELEVANTE' | 'REQUIERE ANÁLISIS' | 'FUERA DE ALCANCE';
   summary: string;
   applicableLaws: string[];
-  estimatedDamage: string;
+  legalContext: string;
   nextSteps: string[];
 }
 
@@ -45,6 +45,11 @@ function parseDiagnostic(content: string): DiagnosticData | null {
 
 function stripDiagnosticJson(content: string): string {
   return content.replace(/```json\s*[\s\S]*?\s*```/, '').trim();
+}
+
+/** Strip incomplete JSON fences that are still streaming (no closing ```) */
+function stripPartialJson(content: string): string {
+  return content.replace(/```json[\s\S]*$/, '').trim();
 }
 
 function BotAvatar() {
@@ -126,7 +131,8 @@ export function ChatWidget() {
     sendMessage({ text: message });
   };
 
-  const focusInput = () => containerRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const focusInput = () => textareaRef.current?.focus();
 
   return (
     <div
@@ -188,22 +194,25 @@ export function ChatWidget() {
             </div>
           )}
 
-          {messages.map((message) => {
+          {messages.map((message, idx) => {
             const isUser = message.role === 'user';
-            const text = getMessageText(message);
+            const rawText = getMessageText(message);
+            const isLastAssistant = !isUser && idx === messages.length - 1 && status === 'streaming';
 
             if (isUser) {
               return (
                 <div key={message.id} className="flex items-end justify-end gap-2 mb-4">
                   <div className="text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm max-w-[85%] leading-relaxed shadow-sm" style={{ background: 'var(--accent-9)' }}>
-                    {text}
+                    {rawText}
                   </div>
                   <Avatar size="2" radius="full" color="gray" fallback={<User size={14} />} />
                 </div>
               );
             }
 
-            const diagnostic = parseDiagnostic(text);
+            const diagnostic = parseDiagnostic(rawText);
+            // While streaming, hide the partial JSON fence that hasn't closed yet
+            const text = isLastAssistant && !diagnostic ? stripPartialJson(rawText) : rawText;
             const textContent = diagnostic ? stripDiagnosticJson(text) : text;
 
             return (
@@ -251,31 +260,57 @@ export function ChatWidget() {
 
       {/* Input area */}
       <div className="flex-shrink-0 px-4 py-3 bg-white" style={{ borderTop: '1px solid var(--slate-4)' }}>
-        <div className="flex items-center gap-2">
-          <TextField.Root
+        <div className="flex items-end gap-2">
+          <textarea
+            ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              // auto-resize up to 3 lines
+              const el = e.target;
+              el.style.height = 'auto';
+              el.style.height = Math.min(el.scrollHeight, 72) + 'px';
+            }}
             placeholder={t.chat.placeholder}
             disabled={isLoading}
-            radius="full"
-            size="3"
+            rows={1}
             className="input-heartbeat"
-            style={{ flex: 1 }}
+            style={{
+              flex: 1,
+              resize: 'none',
+              overflowY: 'auto',
+              border: '1px solid var(--gray-6)',
+              borderRadius: '1rem',
+              padding: '0.5rem 0.85rem',
+              fontSize: '0.9375rem',
+              lineHeight: '1.5',
+              outline: 'none',
+              background: 'white',
+              minHeight: '2.5rem',
+              maxHeight: '4.5rem',
+            }}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSend();
+                // reset height after send
+                const el = e.target as HTMLTextAreaElement;
+                el.style.height = 'auto';
               }
             }}
           />
           <IconButton
-            onClick={() => handleSend()}
+            onClick={() => {
+              handleSend();
+              if (textareaRef.current) textareaRef.current.style.height = 'auto';
+            }}
             disabled={isLoading || !input.trim()}
             size="3"
             radius="full"
             color="green"
+            style={{ flexShrink: 0, marginBottom: '0.125rem' }}
           >
             <Send size={16} />
           </IconButton>

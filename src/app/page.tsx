@@ -5,6 +5,7 @@ import { InfoSection } from '@/components/info-section';
 import { TrustSignals } from '@/components/trust-signals';
 import { WhatsAppFab } from '@/components/whatsapp-fab';
 import { Footer } from '@/components/footer';
+import { AboutQualifAI } from '@/components/about-qualifai';
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
         <TrustSignals />
         <StepsSection />
         <InfoSection />
-
+        <AboutQualifAI />
         <Footer />
       </main>
     </>

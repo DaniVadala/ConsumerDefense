@@ -3,6 +3,7 @@ export type Lang = 'es' | 'en';
 const es = {
   header: {
     howItWorks: '¿Cómo funciona?',
+    aboutUs: 'Sobre nosotros',
     startFree: 'Empezá gratis',
   },
   hero: {
@@ -89,6 +90,18 @@ const es = {
       'Cancelaron mi vuelo o viaje',
     ],
   },
+  about: {
+    pill: 'Quiénes somos',
+    title: '¿Qué es QualifAI?',
+    body: 'QualifAI es una plataforma de inteligencia artificial especializada en conectar personas con los profesionales adecuados para resolver su problema. Nuestra tecnología analiza cada caso de forma personalizada, califica la consulta y la deriva al especialista correcto a través del canal que el usuario prefiera — chat, WhatsApp, formulario o llamada. DefensaYA es nuestra primera solución vertical, enfocada en asesoramiento preliminar en Defensa del Consumidor en Argentina, combinando diagnóstico con inteligencia artificial y conexión directa con abogados reales a través de múltiples canales de atención.',
+    stat1Value: '1ª',
+    stat1Label: 'Plataforma que combina IA + omnicanalidad para conectar con abogados reales',
+    stat2Value: '4',
+    stat2Label: 'Canales de atención integrados',
+    stat3Value: '100%',
+    stat3Label: 'Diagnósticos sin almacenar datos personales',
+    linkLabel: 'Conocé más sobre QualifAI',
+  },
   footer: {
     tagline:
       'Orientación gratuita al consumidor argentino. Diagnóstico inmediato con IA, sin registro.',
@@ -112,6 +125,7 @@ export const translations: Record<Lang, Translations> = {
   en: {
     header: {
       howItWorks: 'How it works',
+      aboutUs: 'About us',
       startFree: 'Start free',
     },
     hero: {
@@ -197,6 +211,18 @@ export const translations: Record<Lang, Translations> = {
         'Internet or phone service keeps failing',
         'My flight or trip was cancelled',
       ],
+    },
+    about: {
+      pill: 'Who we are',
+      title: 'What is QualifAI?',
+      body: 'QualifAI is an artificial intelligence platform specialized in connecting people with the right professionals to solve their problem. Our technology analyzes each case in a personalized way, qualifies the inquiry and routes it to the correct specialist through the user\'s preferred channel — chat, WhatsApp, form or phone call. DefensaYA is our first vertical solution, focused on preliminary consumer rights advisory in Argentina, combining AI-powered diagnostics with direct connection to real lawyers through multiple support channels.',
+      stat1Value: '1st',
+      stat1Label: 'Platform combining AI + omnichannel to connect with real lawyers',
+      stat2Value: '4',
+      stat2Label: 'Integrated contact channels',
+      stat3Value: '100%',
+      stat3Label: 'Diagnoses with no personal data stored',
+      linkLabel: 'Learn more about QualifAI',
     },
     footer: {
       tagline: 'Free consumer guidance for Argentina. Immediate AI diagnosis, no registration.',
