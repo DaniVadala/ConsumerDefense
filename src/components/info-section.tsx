@@ -14,7 +14,7 @@ export function InfoSection() {
   const [formOpen, setFormOpen] = useState(false);
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
-  const mailUrl = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
+  const mailUrl = `https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
 
   return (
     <section className="pt-6 pb-16 lg:pt-8 lg:pb-20 px-4 bg-white" aria-label="Canales de contacto">
@@ -47,7 +47,15 @@ export function InfoSection() {
             href="#chat"
             onClick={(e) => {
               e.preventDefault();
-              document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' });
+              const inputs = document.querySelectorAll<HTMLTextAreaElement>('#chat-input');
+              const textarea = Array.from(inputs).find(el => el.offsetParent !== null);
+              if (textarea) {
+                textarea.focus();
+                const rect = textarea.getBoundingClientRect();
+                window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
+              } else {
+                document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth' });
+              }
             }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -110,6 +118,8 @@ export function InfoSection() {
           {/* Email */}
           <motion.a
             href={mailUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-40px' }}

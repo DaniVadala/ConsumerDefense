@@ -10,11 +10,12 @@ function scrollTo(id: string) {
 }
 
 function focusChat() {
-  const widget = document.getElementById('chat-widget');
-  widget?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  setTimeout(() => {
-    document.getElementById('chat-input')?.focus();
-  }, 600);
+  const all = document.querySelectorAll<HTMLTextAreaElement>('#chat-input');
+  const textarea = Array.from(all).find((el) => el.offsetParent !== null);
+  if (!textarea) return;
+  textarea.focus();
+  const rect = textarea.getBoundingClientRect();
+  window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
 }
 
 export function Header() {
@@ -100,7 +101,7 @@ export function Header() {
 
           <button
             onClick={focusChat}
-            className="inline-flex items-center bg-[var(--accent-9)] hover:bg-[var(--accent-10)] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:scale-[1.02] hover:shadow-md shadow-sm"
+            className="inline-flex items-center cursor-pointer bg-[var(--accent-9)] hover:bg-[var(--accent-10)] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:scale-[1.02] hover:shadow-md shadow-sm"
           >
             {t.header.startFree}
           </button>

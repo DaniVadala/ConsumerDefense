@@ -1,7 +1,23 @@
 'use client';
 
-import { Shield, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
+import { LeadForm } from './lead-form';
+
+
+const WHATSAPP_NUMBER = '5493512852894';
+const CONTACT_EMAIL = 'summalegales@gmail.com';
+
+function focusChatInput() {
+  const inputs = document.querySelectorAll<HTMLTextAreaElement>('#chat-input');
+  const textarea = Array.from(inputs).find(el => el.offsetParent !== null);
+  if (textarea) {
+    textarea.focus();
+    const rect = textarea.getBoundingClientRect();
+    window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
+  }
+}
 
 const ORGANISMOS = [
   { label: 'Defensa del Consumidor', href: 'https://www.argentina.gob.ar/produccion/defensadelconsumidor' },
@@ -50,11 +66,8 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
 
 export function Footer() {
   const { t } = useLocale();
-  const legalLinks = [
-    { label: t.footer.privacyPolicy, href: '#' },
-    { label: t.footer.termsOfUse, href: '#' },
-    { label: t.footer.legalNotice, href: '#' },
-  ];
+  const [formOpen, setFormOpen] = useState(false);
+
   return (
     <footer className="bg-gray-900 text-white" aria-label="Pie de página">
       <div className="max-w-6xl mx-auto px-6 pt-14 pb-8">
@@ -91,22 +104,54 @@ export function Footer() {
             <FooterLinkList items={LEYES} />
           </div>
 
-          {/* Legal links column */}
+          {/* Contact / CTA column */}
           <div>
-            <FooterHeading>{t.footer.legalLinksHeading}</FooterHeading>
-            <ul className="space-y-2.5">
-              {legalLinks.map((item) => (
-                <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
+            <FooterHeading>{t.footer.contactHeading}</FooterHeading>
+            <ul className="space-y-3">
+              <li>
+                <button
+                  onClick={focusChatInput}
+                  className="group inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <Bot className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  {t.footer.contactChat}
+                </button>
+              </li>
+              <li>
+                <a
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.footer.contactWaText)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  {t.footer.contactWa}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.footer.contactMailSubject)}&body=${encodeURIComponent(t.footer.contactMailBody)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  <Mail className="w-4 h-4 text-sky-500 flex-shrink-0" />
+                  {t.footer.contactMail}
+                </a>
+              </li>
+              <li>
+                <button
+                  onClick={() => setFormOpen(true)}
+                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <ClipboardList className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                  {t.footer.contactForm}
+                </button>
+              </li>
             </ul>
           </div>
+
+          <LeadForm open={formOpen} onOpenChange={setFormOpen} />
         </div>
 
         {/* ── Divider + bottom bar ── */}

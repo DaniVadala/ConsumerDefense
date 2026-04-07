@@ -24,6 +24,8 @@ interface LeadFormProps {
 export function LeadForm({ open, onOpenChange }: LeadFormProps) {
   const [submitted, setSubmitted] = useState(false);
 
+  const [submitError, setSubmitError] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -34,14 +36,21 @@ export function LeadForm({ open, onOpenChange }: LeadFormProps) {
   });
 
   const onSubmit = async (data: LeadFormData) => {
-    const res = await fetch('/api/lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      setSubmitted(true);
-      reset();
+    setSubmitError(false);
+    try {
+      const res = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+        reset();
+      } else {
+        setSubmitError(true);
+      }
+    } catch {
+      setSubmitError(true);
     }
   };
 
@@ -134,6 +143,12 @@ export function LeadForm({ open, onOpenChange }: LeadFormProps) {
               <Button type="submit" disabled={isSubmitting} color="green" size="3" mt="2">
                 {isSubmitting ? 'Enviando...' : 'Enviar mis datos →'}
               </Button>
+
+              {submitError && (
+                <Text size="1" color="red" align="center">
+                  Hubo un error al enviar. Intentá de nuevo.
+                </Text>
+              )}
 
               <Text size="1" color="gray" align="center">
                 Tus datos son confidenciales y no se comparten con terceros.

@@ -11,7 +11,7 @@ export function ContactChannels() {
   const [formOpen, setFormOpen] = useState(false);
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola! Tengo un problema de consumo y quiero orientación')}`;
-  const mailUrl = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Consulta DefensaYa')}&body=${encodeURIComponent('Hola, tengo un problema de consumo...')}`;
+  const mailUrl = `https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent('Consulta DefensaYa')}&body=${encodeURIComponent('Hola, tengo un problema de consumo...')}`;
 
   return (
     <section className="py-20 px-4 bg-gray-50">
@@ -48,6 +48,8 @@ export function ContactChannels() {
           {/* Email card */}
           <a
             href={mailUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="group flex flex-col items-center text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-100 hover:-translate-y-1 transition-all duration-300"
           >
             <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md shadow-blue-200">

@@ -281,15 +281,17 @@ export function ChatWidget() {
               flex: 1,
               resize: 'none',
               overflowY: 'auto',
-              border: '1px solid var(--gray-6)',
+              border: inputFocused ? '2px solid #10b981' : '1px solid var(--gray-6)',
+              boxShadow: inputFocused ? '0 0 0 3px rgba(16,185,129,0.25), 0 0 10px 2px rgba(16,185,129,0.15)' : undefined,
               borderRadius: '1rem',
-              padding: '0.5rem 0.85rem',
+              padding: inputFocused ? 'calc(0.5rem - 1px) calc(0.85rem - 1px)' : '0.5rem 0.85rem',
               fontSize: '0.9375rem',
               lineHeight: '1.5',
               outline: 'none',
               background: 'white',
               minHeight: '2.5rem',
               maxHeight: '4.5rem',
+              transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
             }}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}

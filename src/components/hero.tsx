@@ -11,6 +11,21 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const, delay },
 });
 
+/**
+ * Focuses the visible chat textarea.
+ * Both mobile and desktop render a <ChatWidget />, so there are two #chat-input
+ * elements in the DOM. getElementById returns the first (hidden) one on desktop.
+ * We pick the one whose offsetParent is non-null (i.e. not display:none).
+ */
+function focusChatInput() {
+  const all = document.querySelectorAll<HTMLTextAreaElement>('#chat-input');
+  const textarea = Array.from(all).find((el) => el.offsetParent !== null);
+  if (!textarea) return;
+  textarea.focus();
+  const rect = textarea.getBoundingClientRect();
+  window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
+}
+
 export function Hero() {
   const { t } = useLocale();
   return (
@@ -69,13 +84,16 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.26 }}
           >
-            {/* Pill above widget */}
+            {/* Pill above widget — clickable */}
             <div className="flex justify-center mb-2">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20">
+              <button
+                onClick={focusChatInput}
+                className="cursor-pointer inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+              >
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                 Diagnóstico inmediato con IA
                 <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">GRATIS</span>
-              </div>
+              </button>
             </div>
             <div className="h-[480px] rounded-2xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
               <ChatWidget />
@@ -100,11 +118,8 @@ export function Hero() {
           {/* 6. CTA + WA link */}
           <motion.div {...fadeUp(0.42)} className="flex flex-col items-center gap-1.5">
             <button
-              onClick={() => {
-                document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => document.getElementById('chat-input')?.focus(), 600);
-              }}
-              className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
+              onClick={focusChatInput}
+              className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
             >
               {t.hero.ctaButton}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
@@ -174,13 +189,8 @@ export function Hero() {
                 {/* Primary CTA — scrolls to chat input */}
                 <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-1">
                   <button
-                    onClick={() => {
-                      document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                      setTimeout(() => {
-                        document.getElementById('chat-input')?.focus();
-                      }, 600);
-                    }}
-                    className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
+                    onClick={focusChatInput}
+                    className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
                   >
                     {t.hero.ctaButton}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
@@ -213,15 +223,21 @@ export function Hero() {
               <div className="relative w-full max-w-md flex flex-col gap-3">
                 {/* Glow halo */}
                 <div className="absolute -inset-4 bg-gradient-to-r from-[var(--accent-9)]/20 to-[var(--teal-9)]/20 rounded-3xl blur-2xl pointer-events-none" />
-                {/* Pill — above chat widget */}
+                {/* Pill — above chat widget — clickable */}
                 <div className="relative flex-shrink-0 flex justify-center pt-1">
-                  <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20">
+                  <button
+                    onClick={() => {
+                      document.getElementById('chat-input')?.focus();
+                      document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                    className="cursor-pointer inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+                  >
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                     Diagnóstico inmediato con IA
                     <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">
                       GRATIS
                     </span>
-                  </div>
+                  </button>
                 </div>
                 <div className="relative flex-1 overflow-hidden rounded-2xl min-h-0 shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
                   <ChatWidget />
