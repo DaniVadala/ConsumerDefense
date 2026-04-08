@@ -34,7 +34,7 @@ export function useCalModal() {
         }
         if (ar[0] === L) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const api = function () { p(api, arguments); } as any;
+          const api = function (...args: any[]) { p(api, args); } as any;
           const namespace = ar[1];
           api.q = api.q || [];
           if (typeof namespace === 'string') {
