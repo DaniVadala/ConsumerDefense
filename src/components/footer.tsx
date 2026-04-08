@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList } from 'lucide-react';
+import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList, CalendarDays } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
+import { useCalModal } from './cal-modal';
 import { LeadForm } from './lead-form';
 
 
@@ -67,6 +68,7 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
 export function Footer() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
+  const { openCalModal } = useCalModal();
 
   return (
     <footer className="bg-gray-900 text-white" aria-label="Pie de página">
@@ -146,6 +148,15 @@ export function Footer() {
                 >
                   <ClipboardList className="w-4 h-4 text-violet-400 flex-shrink-0" />
                   {t.footer.contactForm}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={openCalModal}
+                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <CalendarDays className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                  {t.footer.contactCal}
                 </button>
               </li>
             </ul>

@@ -1,8 +1,9 @@
 ﻿'use client';
 
 import { useState } from 'react';
-import { MessageCircle, Mail, User, Bot, ArrowRight } from 'lucide-react';
+import { MessageCircle, Mail, User, Bot, ArrowRight, CalendarDays } from 'lucide-react';
 import { LeadForm } from './lead-form';
+import { useCalModal } from './cal-modal';
 import { motion } from 'framer-motion';
 import { useLocale } from '@/lib/i18n/context';
 
@@ -12,13 +13,14 @@ const CONTACT_EMAIL = 'summalegales@gmail.com';
 export function InfoSection() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
+  const { openCalModal } = useCalModal();
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
   const mailUrl = `https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
 
   return (
     <section className="pt-6 pb-16 lg:pt-8 lg:pb-20 px-4 bg-white" aria-label="Canales de contacto">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
 
         {/* Section header */}
         <motion.div
@@ -40,7 +42,7 @@ export function InfoSection() {
         </motion.div>
 
         {/* ── Primary CTAs ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
 
           {/* AI Chat — primary */}
           <motion.a
@@ -61,26 +63,53 @@ export function InfoSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-40px' }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const, delay: 0 }}
-            className="group relative flex items-center gap-5 p-6 rounded-2xl bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] text-white shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
+            className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] text-white shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
           >
             {/* Subtle pattern */}
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
-            <div className="relative w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm group-hover:scale-105 transition-transform duration-200">
-              <Bot className="w-7 h-7 text-white" strokeWidth={1.75} />
+            <ArrowRight className="absolute top-4 right-4 w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200" />
+            <div className="relative flex items-center gap-2 mb-3">
+              <p className="font-bold text-base leading-tight">{t.info.aiTitle}</p>
+              <span className="text-[9px] font-bold bg-white/25 px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0">
+                {t.info.aiBadge}
+              </span>
             </div>
-            <div className="relative flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <p className="font-bold text-base leading-tight">{t.info.aiTitle}</p>
-                <span className="text-[9px] font-bold bg-white/25 px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0">
-                  {t.info.aiBadge}
-                </span>
+            <div className="relative flex items-start gap-3">
+              <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm group-hover:scale-105 transition-transform duration-200">
+                <Bot className="w-5.5 h-5.5 text-white" strokeWidth={1.75} />
               </div>
-              <p className="text-sm text-white/75 leading-snug">
+              <p className="text-sm text-white/75 leading-snug pt-0.5">
                 {t.info.aiDesc}
               </p>
             </div>
-            <ArrowRight className="relative w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
           </motion.a>
+
+          {/* Cal.com — Schedule meeting — primary */}
+          <motion.button
+            onClick={openCalModal}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const, delay: 0.04 }}
+            className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] text-white shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden text-left"
+          >
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
+            <ArrowRight className="absolute top-4 right-4 w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200" />
+            <div className="relative flex items-center gap-2 mb-3">
+              <p className="font-bold text-base leading-tight">{t.info.calTitle}</p>
+              <span className="text-[9px] font-bold bg-white/25 px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0">
+                {t.info.calBadge}
+              </span>
+            </div>
+            <div className="relative flex items-start gap-3">
+              <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm group-hover:scale-105 transition-transform duration-200">
+                <CalendarDays className="w-5.5 h-5.5 text-white" strokeWidth={1.75} />
+              </div>
+              <p className="text-sm text-white/75 leading-snug pt-0.5">
+                {t.info.calDesc}
+              </p>
+            </div>
+          </motion.button>
 
           {/* WhatsApp — primary */}
           <motion.a
@@ -91,24 +120,24 @@ export function InfoSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-40px' }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const, delay: 0.08 }}
-            className="group relative flex items-center gap-5 p-6 rounded-2xl bg-gradient-to-br from-[#1faf38] to-[#25D366] text-white shadow-lg shadow-green-200/50 hover:shadow-xl hover:shadow-green-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+            className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[#1faf38] to-[#25D366] text-white shadow-lg shadow-green-200/50 hover:shadow-xl hover:shadow-green-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
           >
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
-            <div className="relative w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm group-hover:scale-105 transition-transform duration-200">
-              <MessageCircle className="w-7 h-7 text-white fill-white" strokeWidth={1.5} />
+            <ArrowRight className="absolute top-4 right-4 w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200" />
+            <div className="relative flex items-center gap-2 mb-3">
+              <p className="font-bold text-base leading-tight">{t.info.waTitle}</p>
+              <span className="text-[9px] font-bold bg-white/25 px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0">
+                {t.info.waBadge}
+              </span>
             </div>
-            <div className="relative flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <p className="font-bold text-base leading-tight">{t.info.waTitle}</p>
-                <span className="text-[9px] font-bold bg-white/25 px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0">
-                  {t.info.waBadge}
-                </span>
+            <div className="relative flex items-start gap-3">
+              <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm group-hover:scale-105 transition-transform duration-200">
+                <MessageCircle className="w-5.5 h-5.5 text-white fill-white" strokeWidth={1.5} />
               </div>
-              <p className="text-sm text-white/75 leading-snug">
+              <p className="text-sm text-white/75 leading-snug pt-0.5">
                 {t.info.waDesc}
               </p>
             </div>
-            <ArrowRight className="relative w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
           </motion.a>
         </div>
 

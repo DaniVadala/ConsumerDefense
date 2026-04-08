@@ -5,6 +5,7 @@ import { InfoSection } from '@/components/info-section';
 import { TrustSignals } from '@/components/trust-signals';
 import { WhatsAppFab } from '@/components/whatsapp-fab';
 import { Footer } from '@/components/footer';
+import { PreFooterCta } from '@/components/pre-footer-cta';
 import { AboutQualifAI as AboutSyndesix } from '@/components/about-qualifai';
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
         <StepsSection />
         <InfoSection />
         <AboutSyndesix />
+        <PreFooterCta />
         <Footer />
       </main>
     </>
