@@ -2,12 +2,11 @@
 
 import { CalendarDays } from 'lucide-react';
 import { useCalModal } from './cal-modal';
-import { motion } from 'framer-motion';
 import { useLocale } from '@/lib/i18n/context';
 
 export function PreFooterCta() {
   const { t } = useLocale();
-  const { openCalModal } = useCalModal();
+  const { openCalModal, preloadCal } = useCalModal();
 
   return (
     <section className="py-16 px-4 bg-gradient-to-br from-gray-900 via-emerald-950 to-teal-900 relative overflow-hidden">
@@ -21,11 +20,7 @@ export function PreFooterCta() {
       />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-emerald-700/20 via-transparent to-transparent" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      <div
         className="relative max-w-2xl mx-auto text-center"
       >
         <div className="inline-flex items-center justify-center w-14 h-14 bg-emerald-500/20 rounded-2xl mb-5">
@@ -39,12 +34,14 @@ export function PreFooterCta() {
         </p>
         <button
           onClick={openCalModal}
+          onPointerEnter={preloadCal}
+          onFocus={preloadCal}
           className="cursor-pointer inline-flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3.5 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl group"
         >
           <CalendarDays className="w-5 h-5 text-emerald-600" />
           {t.prefooter.cta}
         </button>
-      </motion.div>
+      </div>
     </section>
   );
 }

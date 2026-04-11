@@ -51,3 +51,12 @@
     animation: dot-drift 2.5s linear infinite;
   }
 }
+
+/* A11Y: Respect reduced-motion preference — disable all custom animations */
+@media (prefers-reduced-motion: reduce) {
+  .dot-drift-anim,
+  .animate-dot-drift,
+  .input-heartbeat:not(:focus) {
+    animation: none;
+  }
+}

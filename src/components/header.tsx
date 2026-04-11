@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Shield, Menu, X } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useLocale } from '@/lib/i18n/context';
 
 function scrollTo(id: string) {
@@ -10,7 +9,7 @@ function scrollTo(id: string) {
 }
 
 function focusChat() {
-  const all = document.querySelectorAll<HTMLTextAreaElement>('#chat-input');
+  const all = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
   const textarea = Array.from(all).find((el) => el.offsetParent !== null);
   if (!textarea) return;
   textarea.focus();
@@ -30,10 +29,7 @@ export function Header() {
   }, []);
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm'
@@ -76,6 +72,7 @@ export function Header() {
           <div className="flex items-center gap-1 text-sm font-semibold">
             <button
               onClick={() => setLang('es')}
+              aria-label="Cambiar a español"
               className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors ${
                 lang === 'es'
                   ? scrolled ? 'text-[var(--accent-9)]' : 'text-emerald-400'
@@ -85,9 +82,10 @@ export function Header() {
               <span className="fi fi-ar" style={{ borderRadius: 2, width: 18, height: 13, display: 'inline-block' }} />
               <span>ES</span>
             </button>
-            <span className={scrolled ? 'text-gray-300' : 'text-white/20'}>|</span>
+            <span className={scrolled ? 'text-gray-300' : 'text-white/20'} aria-hidden="true">|</span>
             <button
               onClick={() => setLang('en')}
+              aria-label="Switch to English"
               className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors ${
                 lang === 'en'
                   ? scrolled ? 'text-[var(--accent-9)]' : 'text-emerald-400'
@@ -109,9 +107,11 @@ export function Header() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+          className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-nav"
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -119,7 +119,7 @@ export function Header() {
 
       {/* Mobile slide panel */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-5 space-y-3 shadow-lg">
+        <nav id="mobile-nav" role="navigation" aria-label="Menú móvil" className="md:hidden bg-white border-t border-gray-100 px-4 py-5 space-y-3 shadow-lg">
           <button
             className="block w-full text-left text-sm text-gray-700 font-medium py-2 hover:text-[var(--accent-9)] transition-colors"
             onClick={() => { setMobileOpen(false); scrollTo('como-funciona'); }}
@@ -138,6 +138,7 @@ export function Header() {
             <span className="text-xs text-gray-400 font-medium">Idioma / Language:</span>
             <button
               onClick={() => setLang('es')}
+              aria-label="Cambiar a español"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors ${
                 lang === 'es' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
               }`}
@@ -147,6 +148,7 @@ export function Header() {
             </button>
             <button
               onClick={() => setLang('en')}
+              aria-label="Switch to English"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors ${
                 lang === 'en' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
               }`}
@@ -161,8 +163,8 @@ export function Header() {
           >
             {t.header.startFree}
           </button>
-        </div>
+        </nav>
       )}
-    </motion.header>
+    </header>
   );
 }

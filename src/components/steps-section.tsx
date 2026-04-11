@@ -1,7 +1,6 @@
 'use client';
 
 import { MessageCircle, FileCheck, Scale } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useLocale } from '@/lib/i18n/context';
 
 const STEP_META = [
@@ -22,11 +21,7 @@ export function StepsSection() {
       <div className="max-w-6xl mx-auto px-6 py-10 lg:py-12">
 
         {/* Label + title */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        <div
           className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-2 bg-[var(--accent-3)] text-[var(--accent-11)] text-xs font-semibold px-4 py-1.5 rounded-full mb-3">
@@ -38,7 +33,7 @@ export function StepsSection() {
           <p className="text-gray-400 text-sm mt-1.5">
             {t.steps.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         {/* ── Desktop stepper ── */}
         <div className="hidden md:block relative">
@@ -61,12 +56,8 @@ export function StepsSection() {
 
           <div className="grid grid-cols-3 gap-8">
             {steps.map(({ icon: Icon, step, title, description, time, gradient, ring, glow }, i) => (
-              <motion.div
+              <div
                 key={step}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: i * 0.12 }}
                 className="relative z-10 flex flex-col items-center text-center"
               >
                 {/* Icon badge */}
@@ -88,7 +79,7 @@ export function StepsSection() {
                 <span className="text-[10px] font-semibold text-[var(--accent-11)] bg-[var(--accent-3)] px-2.5 py-0.5 rounded-full">
                   {time}
                 </span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -99,11 +90,7 @@ export function StepsSection() {
             <div key={step} className="flex gap-5">
               {/* Left rail: circle + vertical connector */}
               <div className="flex flex-col items-center flex-shrink-0">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: '-30px' }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
+                <div
                   className="relative"
                 >
                   <div
@@ -114,18 +101,14 @@ export function StepsSection() {
                   <div className="absolute -top-2 -right-2 bg-white border border-gray-200 text-gray-500 text-[9px] font-black px-1 py-px rounded shadow-sm tracking-widest">
                     {step}
                   </div>
-                </motion.div>
+                </div>
                 {i < steps.length - 1 && (
                   <div className="w-px flex-1 bg-gradient-to-b from-gray-300 to-gray-100 my-2 min-h-[32px]" />
                 )}
               </div>
 
               {/* Content */}
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '-30px' }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
+              <div
                 className={i < steps.length - 1 ? 'pb-8' : 'pb-0'}
               >
                 <div className="pt-2">
@@ -135,7 +118,7 @@ export function StepsSection() {
                     {time}
                   </span>
                 </div>
-              </motion.div>
+              </div>
             </div>
           ))}
         </div>

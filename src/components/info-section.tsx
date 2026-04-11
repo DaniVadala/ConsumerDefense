@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { MessageCircle, Mail, User, Bot, ArrowRight, CalendarDays } from 'lucide-react';
 import { LeadForm } from './lead-form';
 import { useCalModal } from './cal-modal';
-import { motion } from 'framer-motion';
 import { useLocale } from '@/lib/i18n/context';
 
 const WHATSAPP_NUMBER = '5493512852894';
@@ -13,7 +12,7 @@ const CONTACT_EMAIL = 'summalegales@gmail.com';
 export function InfoSection() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
-  const { openCalModal } = useCalModal();
+  const { openCalModal, preloadCal } = useCalModal();
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
   const mailUrl = `https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
@@ -23,11 +22,7 @@ export function InfoSection() {
       <div className="max-w-5xl mx-auto">
 
         {/* Section header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
+        <div
           className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-600 text-xs font-semibold px-4 py-2 rounded-full mb-3">
@@ -39,17 +34,17 @@ export function InfoSection() {
           <p className="text-gray-400 text-sm mt-1.5">
             {t.info.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         {/* ── Primary CTAs ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
 
           {/* AI Chat — primary */}
-          <motion.a
+          <a
             href="#chat"
             onClick={(e) => {
               e.preventDefault();
-              const inputs = document.querySelectorAll<HTMLTextAreaElement>('#chat-input');
+              const inputs = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
               const textarea = Array.from(inputs).find(el => el.offsetParent !== null);
               if (textarea) {
                 textarea.focus();
@@ -59,10 +54,6 @@ export function InfoSection() {
                 document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth' });
               }
             }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const, delay: 0 }}
             className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] text-white shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
           >
             {/* Subtle pattern */}
@@ -82,15 +73,13 @@ export function InfoSection() {
                 {t.info.aiDesc}
               </p>
             </div>
-          </motion.a>
+          </a>
 
           {/* Cal.com — Schedule meeting — primary */}
-          <motion.button
+          <button
             onClick={openCalModal}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const, delay: 0.04 }}
+            onPointerEnter={preloadCal}
+            onFocus={preloadCal}
             className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] text-white shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden text-left"
           >
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
@@ -109,17 +98,13 @@ export function InfoSection() {
                 {t.info.calDesc}
               </p>
             </div>
-          </motion.button>
+          </button>
 
           {/* WhatsApp — primary */}
-          <motion.a
+          <a
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const, delay: 0.08 }}
             className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[#1faf38] to-[#25D366] text-white shadow-lg shadow-green-200/50 hover:shadow-xl hover:shadow-green-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
           >
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
@@ -138,21 +123,17 @@ export function InfoSection() {
                 {t.info.waDesc}
               </p>
             </div>
-          </motion.a>
+          </a>
         </div>
 
         {/* ── Secondary options ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
           {/* Email */}
-          <motion.a
+          <a
             href={mailUrl}
             target="_blank"
             rel="noopener noreferrer"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const, delay: 0.16 }}
             className="group flex items-center gap-4 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.14)] hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-200"
           >
             <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
@@ -163,15 +144,11 @@ export function InfoSection() {
               <p className="text-xs text-gray-400 leading-snug">{t.info.emailDesc}</p>
             </div>
             <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" />
-          </motion.a>
+          </a>
 
           {/* Lead form */}
-          <motion.button
+          <button
             onClick={() => setFormOpen(true)}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const, delay: 0.22 }}
             className="group flex items-center gap-4 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.14)] hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-200 text-left w-full"
           >
             <div className="w-9 h-9 bg-[var(--accent-3)] rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
@@ -182,7 +159,7 @@ export function InfoSection() {
               <p className="text-xs text-gray-400 leading-snug">{t.info.formDesc}</p>
             </div>
             <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" />
-          </motion.button>
+          </button>
 
         </div>
       </div>

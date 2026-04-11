@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
 
@@ -31,13 +30,8 @@ export function WhatsAppFab() {
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
       {/* Tooltip bubble */}
-      <AnimatePresence>
         {showTooltip && !dismissed && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-            transition={{ duration: 0.25 }}
+          <div
             className="relative bg-white rounded-xl shadow-lg border border-gray-200 px-4 py-3 max-w-[220px] text-sm"
           >
             <button
@@ -51,9 +45,8 @@ export function WhatsAppFab() {
             <p className="text-gray-400 text-xs mt-0.5">{t.info.fabTooltipDesc}</p>
             {/* Caret */}
             <div className="absolute -bottom-[6px] right-6 w-3 h-3 bg-white border-b border-r border-gray-200 rotate-45" />
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* FAB */}
       <a

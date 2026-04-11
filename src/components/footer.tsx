@@ -11,7 +11,7 @@ const WHATSAPP_NUMBER = '5493512852894';
 const CONTACT_EMAIL = 'summalegales@gmail.com';
 
 function focusChatInput() {
-  const inputs = document.querySelectorAll<HTMLTextAreaElement>('#chat-input');
+  const inputs = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
   const textarea = Array.from(inputs).find(el => el.offsetParent !== null);
   if (textarea) {
     textarea.focus();
@@ -68,7 +68,7 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
 export function Footer() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
-  const { openCalModal } = useCalModal();
+  const { openCalModal, preloadCal } = useCalModal();
 
   return (
     <footer className="bg-gray-900 text-white" aria-label="Pie de página">
@@ -153,6 +153,8 @@ export function Footer() {
               <li>
                 <button
                   onClick={openCalModal}
+                  onPointerEnter={preloadCal}
+                  onFocus={preloadCal}
                   className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <CalendarDays className="w-4 h-4 text-teal-400 flex-shrink-0" />

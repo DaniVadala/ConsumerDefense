@@ -1,23 +1,20 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 const CAL_LINK = 'summaorigin/consulta';
 
 /**
- * Lazily loads the Cal.com embed script using the official snippet pattern
- * and exposes a function to open the scheduling modal.
+ * Loads the Cal.com embed script on demand (first click or after idle).
+ * Avoids blocking the initial page load with a 3rd-party script.
  */
-export function useCalModal() {
-  const loadedRef = useRef(false);
+function loadCalScript(): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const win = window as any;
+  if (win._calLoaded) return Promise.resolve();
+  win._calLoaded = true;
 
-  useEffect(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
-
-    // Official Cal.com embed snippet (adapted)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const win = window as any;
+  return new Promise((resolve) => {
     (function (C: typeof win, A: string, L: string) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const p = function (a: any, ar: any) { a.q.push(ar); };
@@ -29,7 +26,10 @@ export function useCalModal() {
         if (!cal.loaded) {
           cal.ns = {};
           cal.q = cal.q || [];
-          d.head.appendChild(d.createElement('script')).src = A;
+          const s = d.createElement('script');
+          s.src = A;
+          s.onload = () => resolve();
+          d.head.appendChild(s);
           cal.loaded = true;
         }
         if (ar[0] === L) {
@@ -55,21 +55,30 @@ export function useCalModal() {
       theme: 'light',
       styles: { branding: { brandColor: '#059669' } },
     });
+  });
+}
+
+export function useCalModal() {
+  const preloadedRef = useRef(false);
+
+  // Preload on hover/focus so the script is ready by the time they click
+  const preloadCal = useCallback(() => {
+    if (preloadedRef.current) return;
+    preloadedRef.current = true;
+    loadCalScript();
   }, []);
 
   const openCalModal = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cal = (window as any).Cal;
-    if (!cal) return;
-
-    cal('modal', {
-      calLink: CAL_LINK,
-      config: {
-        layout: 'month_view',
-        theme: 'light',
-      },
+    loadCalScript().then(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cal = (window as any).Cal;
+      if (!cal) return;
+      cal('modal', {
+        calLink: CAL_LINK,
+        config: { layout: 'month_view', theme: 'light' },
+      });
     });
   }, []);
 
-  return { openCalModal };
+  return { openCalModal, preloadCal };
 }

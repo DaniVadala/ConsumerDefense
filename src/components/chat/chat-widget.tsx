@@ -2,10 +2,9 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Avatar, Button, IconButton, ScrollArea } from '@radix-ui/themes';
 import { Send, User, Shield } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { DiagnosticCard } from './diagnostic-card';
 import { useLocale } from '@/lib/i18n/context';
 import type { UIMessage } from 'ai';
@@ -24,7 +23,6 @@ interface DiagnosticData {
 }
 
 function getMessageText(message: UIMessage): string {
-  console.log('MSG PARTS:', JSON.stringify(message.parts));
   return message.parts
     .filter((p) => p.type === 'text')
     .map((p) => (p as { type: 'text'; text: string }).text)
@@ -62,12 +60,13 @@ function BotAvatar() {
 
 function TypingIndicator({ label }: { label: string }) {
   return (
-    <div className="flex items-end gap-2 mb-4">
+    // A11Y: role=status + aria-live so screen readers announce typing state
+    <div className="flex items-end gap-2 mb-4" role="status" aria-live="polite">
       <BotAvatar />
       <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 text-sm shadow-sm" style={{ border: '1px solid var(--slate-4)', color: 'var(--slate-11)' }}>
         <span className="flex items-center gap-2">
           <span className="text-xs" style={{ color: 'var(--slate-9)' }}>{label}</span>
-          <span className="flex gap-0.5">
+          <span className="flex gap-0.5" aria-hidden="true">
             <span className="animate-bounce w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--accent-9)', animationDelay: '0ms' }} />
             <span className="animate-bounce w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--accent-9)', animationDelay: '150ms' }} />
             <span className="animate-bounce w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--accent-9)', animationDelay: '300ms' }} />
@@ -78,7 +77,7 @@ function TypingIndicator({ label }: { label: string }) {
   );
 }
 
-function useTypewriter(text: string, speed = 22) {
+function useTypewriter(text: string, speed = 8) {
   const [displayed, setDisplayed] = useState('');
   const [done, setDone] = useState(false);
   useEffect(() => {
@@ -100,7 +99,10 @@ function useTypewriter(text: string, speed = 22) {
 
 export function ChatWidget() {
   const { t } = useLocale();
-  const { messages, sendMessage, status } = useChat({
+  // A11Y: unique ID per ChatWidget instance to avoid duplicate id="chat-input"
+  const instanceId = useId();
+  const inputId = `chat-input-${instanceId}`;
+  const { messages, sendMessage, status, error } = useChat({
     transport: chatTransport,
   });
 
@@ -108,7 +110,7 @@ export function ChatWidget() {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [inputFocused, setInputFocused] = useState(false);
   const isLoading = status === 'submitted' || status === 'streaming';
-  const { displayed: welcomeText, done: welcomeDone } = useTypewriter(t.chat.welcome, 22);
+  const { displayed: welcomeText, done: welcomeDone } = useTypewriter(t.chat.welcome, 8);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
@@ -165,7 +167,8 @@ export function ChatWidget() {
 
       {/* Messages area */}
       <ScrollArea ref={scrollViewportRef} className="flex-1" style={{ minHeight: 0, background: 'var(--slate-2)' }} scrollbars="vertical">
-        <div className="px-4 py-5">
+        {/* A11Y: aria-live region so screen readers announce new messages */}
+        <div className="px-4 py-5" aria-live="polite" aria-relevant="additions">
           {/* Welcome message */}
           <div className="flex items-end gap-2 mb-4">
             <BotAvatar />
@@ -234,18 +237,19 @@ export function ChatWidget() {
           })}
 
           {isLoading && <TypingIndicator label={t.chat.typing} />}
+
+          {/* DATA-RELIABILITY: Show error to user when chat stream fails */}
+          {error && (
+            <div className="mx-2 mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">
+              Hubo un error al procesar tu mensaje. Intentá de nuevo.
+            </div>
+          )}
         </div>
       </ScrollArea>
 
       {/* Hint bar — visible before first message, inside the card */}
-      <AnimatePresence>
-        {showSuggestions && messages.length === 0 && (
-          <motion.div
-            key="hint"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 2.5, duration: 0.5 }}
+      {showSuggestions && messages.length === 0 && (
+          <div
             className="flex-shrink-0 flex justify-center py-2 bg-slate-50 border-t border-slate-100"
           >
             <button
@@ -255,17 +259,18 @@ export function ChatWidget() {
               <span className="animate-bounce inline-block">👇</span>
               {t.chat.hintText}
             </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
 
       {/* Input area */}
       <div className="flex-shrink-0 px-4 py-3 bg-white" style={{ borderTop: '1px solid var(--slate-4)' }}>
         <div className="flex items-end gap-2">
           <textarea
-            id="chat-input"
+            id={inputId}
+            data-chat-input
             ref={textareaRef}
             value={input}
+            aria-label={t.chat.placeholder}
             onChange={(e) => {
               setInput(e.target.value);
               // auto-resize up to 3 lines
@@ -314,6 +319,7 @@ export function ChatWidget() {
             size="3"
             radius="full"
             color="green"
+            aria-label="Enviar mensaje"
             style={{ flexShrink: 0, marginBottom: '0.125rem' }}
           >
             <Send size={16} />
