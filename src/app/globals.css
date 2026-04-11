@@ -43,8 +43,8 @@
 }
 
 @keyframes dot-drift {
-  from { background-position: 0px 0px; }
-  to   { background-position: -30px 30px; }
+  from { translate: 0px 0px; }
+  to   { translate: -30px 30px; }
 }
 
 @keyframes blink {
@@ -59,6 +59,7 @@
 
 .input-heartbeat:not(:focus) {
   animation: input-pulse 2.4s ease-in-out infinite;
+  will-change: box-shadow;
 }
 
 .input-heartbeat:focus {
@@ -71,9 +72,11 @@
 @layer utilities {
   .animate-dot-drift {
     animation: dot-drift 20s linear infinite;
+    will-change: transform;
   }
   .dot-drift-anim {
     animation: dot-drift 2.5s linear infinite;
+    will-change: transform;
   }
 }
 

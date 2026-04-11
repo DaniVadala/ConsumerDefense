@@ -49,7 +49,7 @@ export function Hero() {
       className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-emerald-950 to-teal-900 pt-16 scroll-mt-16"
     >
       <div
-        className="dot-drift-anim absolute inset-0 opacity-[0.22]"
+        className="dot-drift-anim absolute -inset-[30px] opacity-[0.22]"
         style={{
           backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
           backgroundSize: '30px 30px',
