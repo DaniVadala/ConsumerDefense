@@ -10,6 +10,31 @@
 
 
 
+/* Color tokens (green accent, slate gray) — lightweight replacement for @radix-ui/themes/styles.css (~670 KB) */
+:root {
+  --accent-2: #f2fcf5;
+  --accent-3: #e9f9ee;
+  --accent-4: #ddf3e4;
+  --accent-9: #30a46c;
+  --accent-10: #2b9a66;
+  --accent-11: #218358;
+  --teal-9: #12a594;
+  --slate-2: #f9f9fb;
+  --slate-4: #e8e8ec;
+  --slate-9: #8b8d98;
+  --slate-11: #60646c;
+  --slate-12: #1c2024;
+  --gray-6: #d9d9d9;
+  --green-4: #c9efd6;
+  --green-9: #30a46c;
+  --green-10: #2b9a66;
+  --amber-2: #fefbe9;
+  --amber-5: #f3d768;
+  --amber-11: #ad5700;
+  --radius-2: 0.5rem;
+  --radius-3: 0.75rem;
+}
+
 @layer base {
   html {
     font-family: var(--font-geist-sans), system-ui, sans-serif;

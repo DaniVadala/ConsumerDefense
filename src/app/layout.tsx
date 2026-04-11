@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import { Theme } from "@radix-ui/themes";
 import { LocaleProvider } from "@/lib/i18n/context";
-import "@radix-ui/themes/styles.css";
-import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://defensaya.com';
@@ -82,11 +79,9 @@ export default function RootLayout({
         >
           Ir al contenido principal
         </a>
-        <Theme accentColor="green" grayColor="slate" radius="medium" scaling="100%">
-          <LocaleProvider>
-            {children}
-          </LocaleProvider>
-        </Theme>
+        <LocaleProvider>
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

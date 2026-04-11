@@ -1,10 +1,29 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { ChatWidget } from '@/components/chat/chat-widget';
 import { useCalModal } from '@/components/cal-modal';
 import { ArrowRight } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
+
+const ChatWidget = dynamic(
+  () => import('@/components/chat/chat-widget').then(m => ({ default: m.ChatWidget })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-col h-full rounded-2xl overflow-hidden bg-white border border-gray-200">
+        <div className="flex items-center gap-3 px-5 py-4" style={{ background: 'linear-gradient(135deg, var(--accent-9), var(--teal-9))' }}>
+          <div className="w-10 h-10 bg-white/20 rounded-full" />
+          <div className="space-y-1.5"><div className="h-3.5 w-20 bg-white/30 rounded" /><div className="h-2.5 w-32 bg-white/20 rounded" /></div>
+        </div>
+        <div className="flex-1 p-4 space-y-3" style={{ background: 'var(--slate-2)' }}>
+          <div className="flex items-end gap-2"><div className="w-8 h-8 rounded-full bg-emerald-100" /><div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100"><div className="h-3 w-48 bg-gray-200 rounded animate-pulse" /></div></div>
+        </div>
+        <div className="px-4 py-3 bg-white border-t border-gray-100"><div className="h-10 bg-gray-100 rounded-2xl" /></div>
+      </div>
+    ),
+  }
+);
 
 /**
  * Focuses the visible chat textarea.
@@ -183,6 +202,7 @@ export function Hero() {
                 width={533}
                 height={400}
                 className="h-[400px] w-auto object-contain object-bottom drop-shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
+                priority
               />
               {/* CTA buttons — overlap the bottom of the image */}
               <div className="flex flex-col items-center gap-1 w-full max-w-sm -mt-8 relative z-10">

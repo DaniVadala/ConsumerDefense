@@ -14,9 +14,15 @@ const messageSchema = z.object({
     .array(
       z.object({
         id: z.string(),
-        role: z.enum(['user', 'assistant', 'system']),
-        content: z.string().max(MAX_CONTENT_LENGTH),
-        parts: z.array(z.any()).optional(),
+        // UIMessage v6 stores content in parts (no top-level content/role fields)
+        parts: z
+          .array(
+            z.object({
+              type: z.string(),
+              text: z.string().max(MAX_CONTENT_LENGTH).optional(),
+            }).passthrough()
+          )
+          .optional(),
       }).passthrough()
     )
     .max(MAX_MESSAGES),
@@ -45,7 +51,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model: groq('llama-3.3-70b-versatile'),
     system: getSystemPrompt(),
-    messages: await convertToModelMessages(parsed.messages as UIMessage[]),
+    messages: await convertToModelMessages(parsed.messages as unknown as UIMessage[]),
     maxOutputTokens: 1024,
   });
 

@@ -4,6 +4,26 @@ import { useState, useEffect } from 'react';
 import { Shield, Menu, X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
 
+function ArgFlag() {
+  return (
+    <svg viewBox="0 0 900 600" width={18} height={13} aria-hidden="true" style={{ borderRadius: 2, display: 'inline-block', flexShrink: 0 }}>
+      <rect fill="#74ACDF" width={900} height={600} />
+      <rect fill="#FFF" y={200} width={900} height={200} />
+      <circle fill="#F6B40E" cx={450} cy={300} r={55} />
+    </svg>
+  );
+}
+
+function UsFlag() {
+  return (
+    <svg viewBox="0 0 190 100" width={18} height={13} aria-hidden="true" style={{ borderRadius: 2, display: 'inline-block', flexShrink: 0 }}>
+      <rect fill="#B22234" width={190} height={100} />
+      <path d="M0,8h190M0,23h190M0,38h190M0,54h190M0,69h190M0,84h190" stroke="#FFF" strokeWidth={7.7} />
+      <rect fill="#3C3B6E" width={76} height={54} />
+    </svg>
+  );
+}
+
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 }
@@ -79,7 +99,7 @@ export function Header() {
                   : scrolled ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
               }`}
             >
-              <span className="fi fi-ar" style={{ borderRadius: 2, width: 18, height: 13, display: 'inline-block' }} />
+              <ArgFlag />
               <span>ES</span>
             </button>
             <span className={scrolled ? 'text-gray-300' : 'text-white/20'} aria-hidden="true">|</span>
@@ -92,7 +112,7 @@ export function Header() {
                   : scrolled ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
               }`}
             >
-              <span className="fi fi-us" style={{ borderRadius: 2, width: 18, height: 13, display: 'inline-block' }} />
+              <UsFlag />
               <span>EN</span>
             </button>
           </div>
@@ -143,7 +163,7 @@ export function Header() {
                 lang === 'es' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
               }`}
             >
-              <span className="fi fi-ar" style={{ borderRadius: 2, width: 18, height: 13, display: 'inline-block' }} />
+              <ArgFlag />
               <span>ES</span>
             </button>
             <button
@@ -153,7 +173,7 @@ export function Header() {
                 lang === 'en' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
               }`}
             >
-              <span className="fi fi-us" style={{ borderRadius: 2, width: 18, height: 13, display: 'inline-block' }} />
+              <UsFlag />
               <span>EN</span>
             </button>
           </div>

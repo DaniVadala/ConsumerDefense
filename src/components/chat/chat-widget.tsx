@@ -3,7 +3,6 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useEffect, useId, useRef, useState } from 'react';
-import { Avatar, Button, IconButton, ScrollArea } from '@radix-ui/themes';
 import { Send, User, Shield } from 'lucide-react';
 import { DiagnosticCard } from './diagnostic-card';
 import { useLocale } from '@/lib/i18n/context';
@@ -166,7 +165,7 @@ export function ChatWidget() {
       </div>
 
       {/* Messages area */}
-      <ScrollArea ref={scrollViewportRef} className="flex-1" style={{ minHeight: 0, background: 'var(--slate-2)' }} scrollbars="vertical">
+      <div ref={scrollViewportRef} className="flex-1 overflow-y-auto" style={{ minHeight: 0, background: 'var(--slate-2)' }}>
         {/* A11Y: aria-live region so screen readers announce new messages */}
         <div className="px-4 py-5" aria-live="polite" aria-relevant="additions">
           {/* Welcome message */}
@@ -184,16 +183,13 @@ export function ChatWidget() {
           {showSuggestions && messages.length === 0 && (
             <div className="flex flex-wrap gap-2 mb-5 pl-10">
               {t.chat.suggestions.map((suggestion) => (
-                <Button
+                <button
                   key={suggestion}
-                  size="1"
-                  variant="outline"
-                  color="green"
-                  radius="full"
                   onClick={() => handleSend(suggestion)}
+                  className="text-xs font-medium px-3 py-1.5 rounded-full border border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 transition-colors cursor-pointer"
                 >
                   {suggestion}
-                </Button>
+                </button>
               ))}
             </div>
           )}
@@ -209,7 +205,9 @@ export function ChatWidget() {
                   <div className="text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm max-w-[85%] leading-relaxed shadow-sm" style={{ background: 'var(--accent-9)' }}>
                     {rawText}
                   </div>
-                  <Avatar size="2" radius="full" color="gray" fallback={<User size={14} />} />
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                    <User size={14} className="text-gray-500" />
+                  </div>
                 </div>
               );
             }
@@ -245,7 +243,7 @@ export function ChatWidget() {
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Hint bar — visible before first message, inside the card */}
       {showSuggestions && messages.length === 0 && (
@@ -310,20 +308,17 @@ export function ChatWidget() {
               }
             }}
           />
-          <IconButton
+          <button
             onClick={() => {
               handleSend();
               if (textareaRef.current) textareaRef.current.style.height = 'auto';
             }}
             disabled={isLoading || !input.trim()}
-            size="3"
-            radius="full"
-            color="green"
             aria-label="Enviar mensaje"
-            style={{ flexShrink: 0, marginBottom: '0.125rem' }}
+            className="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center flex-shrink-0 mb-0.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <Send size={16} />
-          </IconButton>
+          </button>
         </div>
       </div>
     </div>
