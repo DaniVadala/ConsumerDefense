@@ -85,7 +85,7 @@ export function AboutQualifAI() {
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3">
-              {stats.map((stat, i) => {
+              {stats.map((stat) => {
                 const Icon = stat.icon;
                 return (
                   <div

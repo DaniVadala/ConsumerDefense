@@ -55,7 +55,7 @@ export function StepsSection() {
           </div>
 
           <div className="grid grid-cols-3 gap-8">
-            {steps.map(({ icon: Icon, step, title, description, time, gradient, ring, glow }, i) => (
+            {steps.map(({ icon: Icon, step, title, description, time, gradient, ring, glow }) => (
               <div
                 key={step}
                 className="relative z-10 flex flex-col items-center text-center"

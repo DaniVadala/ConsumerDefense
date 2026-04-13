@@ -86,7 +86,6 @@ export function Header() {
           >
             {t.header.aboutUs}
           </button>
-          {/* TODO: Link a página QualifAI cuando exista */}
 
           {/* Language selector */}
           <div className="flex items-center gap-1 text-sm font-semibold">
@@ -152,7 +151,6 @@ export function Header() {
           >
             {t.header.aboutUs}
           </button>
-          {/* TODO: Link a página QualifAI cuando exista */}
           {/* Language selector — mobile */}
           <div className="flex items-center gap-2 py-1">
             <span className="text-xs text-gray-400 font-medium">Idioma / Language:</span>

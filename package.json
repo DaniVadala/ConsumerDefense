@@ -1,6 +1,9 @@
 {
-  "name": "reclamobot",
-  "version": "0.1.0",
+  "name": "defensaya",
+  "version": "1.0.0",
+  "description": "AI-powered consumer rights advisor for Argentine citizens — built with Next.js 16, Vercel AI SDK, and Tailwind CSS.",
+  "author": "Daniel Vadala",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,18 +12,14 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.66",
-    "@ai-sdk/google": "^3.0.56",
     "@ai-sdk/groq": "^3.0.33",
     "@ai-sdk/react": "^3.0.146",
     "@base-ui/react": "^1.3.0",
     "@calcom/embed-react": "^1.5.3",
     "@hookform/resolvers": "^5.2.2",
-    "@radix-ui/themes": "^3.3.0",
     "ai": "^6.0.144",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "flag-icons": "^7.5.0",
     "lucide-react": "^1.7.0",
     "next": "^16.2.3",
     "react": "19.2.4",

@@ -1,6 +1,8 @@
 // DATA-RELIABILITY: Global error boundary — shows fallback UI for unexpected runtime errors
 'use client';
 
+import Link from 'next/link';
+
 export default function Error({
   unstable_retry,
 }: {
@@ -20,12 +22,12 @@ export default function Error({
         >
           Intentar de nuevo
         </button>
-        <a
+        <Link
           href="/"
           className="border border-gray-300 text-gray-700 font-semibold px-6 py-2.5 rounded-full hover:bg-gray-50 transition-colors"
         >
           Volver al inicio
-        </a>
+        </Link>
       </div>
     </div>
   );
