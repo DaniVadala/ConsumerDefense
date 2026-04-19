@@ -7,6 +7,7 @@ import { useCalModal } from '../cal-modal';
 import { useLocale } from '@/lib/i18n/context';
 import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen } from '@/lib/analytics';
 import { useChatAvailability } from '@/lib/chat-availability-context';
+import { openMailCompose } from '@/lib/utils';
 
 const WHATSAPP_NUMBER = '5493515284074';
 const CONTACT_EMAIL = 'angelyocca@hotmail.com';
@@ -18,7 +19,6 @@ export function InfoSection() {
   const { chatAvailable } = useChatAvailability();
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
-  const mailUrl = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
 
   return (
     <section className="pt-6 pb-16 lg:pt-8 lg:pb-20 px-4 bg-white" aria-label="Canales de contacto">
@@ -135,12 +135,9 @@ export function InfoSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
           {/* Email */}
-          <a
-            href={mailUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackEmailClick('info')}
-            className="group flex items-center gap-4 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.14)] hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-200"
+          <button
+            onClick={() => { trackEmailClick('info'); openMailCompose(CONTACT_EMAIL, t.info.mailSubject, t.info.mailBody); }}
+            className="group flex items-center gap-4 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.14)] hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-200 w-full text-left cursor-pointer"
           >
             <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
               <Mail className="w-4.5 h-4.5 text-blue-500" />
@@ -150,7 +147,7 @@ export function InfoSection() {
               <p className="text-xs text-gray-400 leading-snug">{t.info.emailDesc}</p>
             </div>
             <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" />
-          </a>
+          </button>
 
           {/* Lead form */}
           <button

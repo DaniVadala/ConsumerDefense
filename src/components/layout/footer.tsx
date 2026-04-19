@@ -7,6 +7,7 @@ import { useCalModal } from '../cal-modal';
 import { LeadForm } from '../lead-form';
 import { trackChatFocus, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen, trackCalModalOpen, trackCalPreload, trackExternalLinkClick } from '@/lib/analytics';
 import { useChatAvailability } from '@/lib/chat-availability-context';
+import { openMailCompose } from '@/lib/utils';
 
 
 const WHATSAPP_NUMBER = '5493515284074';
@@ -138,16 +139,13 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.footer.contactMailSubject)}&body=${encodeURIComponent(t.footer.contactMailBody)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackEmailClick('footer')}
-                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                <button
+                  onClick={() => { trackEmailClick('footer'); openMailCompose(CONTACT_EMAIL, t.footer.contactMailSubject, t.footer.contactMailBody); }}
+                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <Mail className="w-4 h-4 text-sky-500 flex-shrink-0" />
                   {t.footer.contactMail}
-                </a>
+                </button>
               </li>
               <li>
                 <button

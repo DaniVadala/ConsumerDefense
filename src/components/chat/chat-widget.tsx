@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { CalendarDays, Mail, Send, Shield, User, Square } from 'lucide-react';
 import { useCalModal } from '@/components/cal-modal';
 import { useChatAvailability } from '@/lib/chat-availability-context';
+import { openMailCompose } from '@/lib/utils';
 import { DiagnosticCard } from './diagnostic-card';
 import { IntakeQuestion } from './intake-question';
 import { AreaSelector } from './area-selector';
@@ -199,15 +200,13 @@ export function ChatWidget() {
                 <CalendarDays className="w-5 h-5 text-teal-600" />
                 Reservar turno gratis
               </button>
-              <a
-                href={`mailto:angelyocca@hotmail.com?subject=${encodeURIComponent('Consulta desde DefensaYa')}&body=${encodeURIComponent('Hola, necesito orientación sobre un reclamo de consumidor.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-6 py-3 rounded-full transition-colors shadow-sm"
+              <button
+                onClick={() => openMailCompose('angelyocca@hotmail.com', 'Consulta desde DefensaYa', 'Hola, necesito orientación sobre un reclamo de consumidor.')}
+                className="inline-flex items-center justify-center gap-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-6 py-3 rounded-full transition-colors shadow-sm cursor-pointer"
               >
                 <Mail className="w-5 h-5 text-blue-500" />
                 Envianos un email
-              </a>
+              </button>
             </div>
           </div>
         ) : (<>
