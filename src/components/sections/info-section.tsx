@@ -18,7 +18,7 @@ export function InfoSection() {
   const { chatAvailable } = useChatAvailability();
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
-  const mailUrl = `https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
+  const mailUrl = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
 
   return (
     <section className="pt-6 pb-16 lg:pt-8 lg:pb-20 px-4 bg-white" aria-label="Canales de contacto">

@@ -200,7 +200,7 @@ export function ChatWidget() {
                 Reservar turno gratis
               </button>
               <a
-                href={`https://mail.google.com/mail/?view=cm&to=angelyocca@hotmail.com&su=${encodeURIComponent('Consulta desde DefensaYa')}&body=${encodeURIComponent('Hola, necesito orientación sobre un reclamo de consumidor.')}`}
+                href={`mailto:angelyocca@hotmail.com?subject=${encodeURIComponent('Consulta desde DefensaYa')}&body=${encodeURIComponent('Hola, necesito orientación sobre un reclamo de consumidor.')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-6 py-3 rounded-full transition-colors shadow-sm"

@@ -139,7 +139,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href={`https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.footer.contactMailSubject)}&body=${encodeURIComponent(t.footer.contactMailBody)}`}
+                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.footer.contactMailSubject)}&body=${encodeURIComponent(t.footer.contactMailBody)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackEmailClick('footer')}
