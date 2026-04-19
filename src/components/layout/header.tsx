@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Menu, X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
+import { trackNavClick, trackLanguageChange } from '@/lib/analytics';
 
 function ArgFlag() {
   return (
@@ -44,6 +45,7 @@ export function Header() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 2);
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -71,7 +73,7 @@ export function Header() {
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6">
           <button
-            onClick={() => scrollTo('como-funciona')}
+            onClick={() => { trackNavClick('como-funciona', 'header'); scrollTo('como-funciona'); }}
             className={`text-sm font-medium transition-colors ${
               scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
             }`}
@@ -79,7 +81,7 @@ export function Header() {
             {t.header.howItWorks}
           </button>
           <button
-            onClick={() => scrollTo('qualifai')}
+            onClick={() => { trackNavClick('qualifai', 'header'); scrollTo('qualifai'); }}
             className={`text-sm font-medium transition-colors ${
               scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
             }`}
@@ -90,7 +92,7 @@ export function Header() {
           {/* Language selector */}
           <div className="flex items-center gap-1 text-sm font-semibold">
             <button
-              onClick={() => setLang('es')}
+              onClick={() => { trackLanguageChange('es'); setLang('es'); }}
               aria-label="Cambiar a español"
               className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors ${
                 lang === 'es'
@@ -103,7 +105,7 @@ export function Header() {
             </button>
             <span className={scrolled ? 'text-gray-300' : 'text-white/20'} aria-hidden="true">|</span>
             <button
-              onClick={() => setLang('en')}
+              onClick={() => { trackLanguageChange('en'); setLang('en'); }}
               aria-label="Switch to English"
               className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors ${
                 lang === 'en'
@@ -117,7 +119,7 @@ export function Header() {
           </div>
 
           <button
-            onClick={focusChat}
+            onClick={() => { trackNavClick('empeza-gratis', 'header'); focusChat(); }}
             className="inline-flex items-center cursor-pointer bg-[var(--accent-9)] hover:bg-[var(--accent-10)] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:scale-[1.02] hover:shadow-md shadow-sm"
           >
             {t.header.startFree}
@@ -141,13 +143,13 @@ export function Header() {
         <nav id="mobile-nav" role="navigation" aria-label="Menú móvil" className="md:hidden bg-white border-t border-gray-100 px-4 py-5 space-y-3 shadow-lg">
           <button
             className="block w-full text-left text-sm text-gray-700 font-medium py-2 hover:text-[var(--accent-9)] transition-colors"
-            onClick={() => { setMobileOpen(false); scrollTo('como-funciona'); }}
+            onClick={() => { setMobileOpen(false); trackNavClick('como-funciona', 'mobile_menu'); scrollTo('como-funciona'); }}
           >
             {t.header.howItWorks}
           </button>
           <button
             className="block w-full text-left text-sm text-gray-700 font-medium py-2 hover:text-[var(--accent-9)] transition-colors"
-            onClick={() => { setMobileOpen(false); scrollTo('qualifai'); }}
+            onClick={() => { setMobileOpen(false); trackNavClick('qualifai', 'mobile_menu'); scrollTo('qualifai'); }}
           >
             {t.header.aboutUs}
           </button>
@@ -155,7 +157,7 @@ export function Header() {
           <div className="flex items-center gap-2 py-1">
             <span className="text-xs text-gray-400 font-medium">Idioma / Language:</span>
             <button
-              onClick={() => setLang('es')}
+              onClick={() => { trackLanguageChange('es'); setLang('es'); }}
               aria-label="Cambiar a español"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors ${
                 lang === 'es' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
@@ -165,7 +167,7 @@ export function Header() {
               <span>ES</span>
             </button>
             <button
-              onClick={() => setLang('en')}
+              onClick={() => { trackLanguageChange('en'); setLang('en'); }}
               aria-label="Switch to English"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors ${
                 lang === 'en' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
@@ -177,7 +179,7 @@ export function Header() {
           </div>
           <button
             className="block w-full text-center bg-[var(--accent-9)] text-white text-sm font-semibold px-5 py-3 rounded-full transition-colors hover:bg-[var(--accent-10)]"
-            onClick={() => { setMobileOpen(false); focusChat(); }}
+            onClick={() => { setMobileOpen(false); trackNavClick('empeza-gratis', 'mobile_menu'); focusChat(); }}
           >
             {t.header.startFree}
           </button>

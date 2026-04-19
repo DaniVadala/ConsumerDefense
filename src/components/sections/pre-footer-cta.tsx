@@ -1,8 +1,9 @@
 'use client';
 
 import { CalendarDays } from 'lucide-react';
-import { useCalModal } from './cal-modal';
+import { useCalModal } from '../cal-modal';
 import { useLocale } from '@/lib/i18n/context';
+import { trackCalModalOpen, trackCalPreload } from '@/lib/analytics';
 
 export function PreFooterCta() {
   const { t } = useLocale();
@@ -33,9 +34,9 @@ export function PreFooterCta() {
           {t.prefooter.subtitle}
         </p>
         <button
-          onClick={openCalModal}
-          onPointerEnter={preloadCal}
-          onFocus={preloadCal}
+          onClick={() => { trackCalModalOpen('prefooter'); openCalModal(); }}
+          onPointerEnter={() => { trackCalPreload('prefooter'); preloadCal(); }}
+          onFocus={() => { trackCalPreload('prefooter'); preloadCal(); }}
           className="cursor-pointer inline-flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3.5 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl group"
         >
           <CalendarDays className="w-5 h-5 text-emerald-600" />

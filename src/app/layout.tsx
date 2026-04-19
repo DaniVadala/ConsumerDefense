@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { LocaleProvider } from "@/lib/i18n/context";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import "./globals.css";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://defensaya.com';
@@ -56,6 +58,7 @@ export default function RootLayout({
       <head>
         {/* PERF: dns-prefetch for Cal.com embed loaded on demand */}
         <link rel="dns-prefetch" href="https://app.cal.com" />
+        <GoogleAnalytics />
       </head>
       <body>
         {/* SEO: JSON-LD Organization structured data */}
@@ -80,6 +83,7 @@ export default function RootLayout({
           Ir al contenido principal
         </a>
         <LocaleProvider>
+          <AnalyticsProvider />
           {children}
         </LocaleProvider>
       </body>

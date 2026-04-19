@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList, CalendarDays } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
-import { useCalModal } from './cal-modal';
-import { LeadForm } from './lead-form';
+import { useCalModal } from '../cal-modal';
+import { LeadForm } from '../lead-form';
+import { trackChatFocus, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen, trackCalModalOpen, trackCalPreload, trackExternalLinkClick } from '@/lib/analytics';
+import { useChatAvailability } from '@/lib/chat-availability-context';
 
 
 const WHATSAPP_NUMBER = '5493512852894';
@@ -46,6 +48,7 @@ function FooterLinkList({ items }: { items: { label: string; href: string }[] })
             href={item.href}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackExternalLinkClick(item.href, item.label)}
             className="group inline-flex items-start gap-1.5 text-sm text-gray-400 hover:text-white transition-colors leading-snug"
           >
             <span>{item.label}</span>
@@ -69,6 +72,7 @@ export function Footer() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
   const { openCalModal, preloadCal } = useCalModal();
+  const { chatAvailable } = useChatAvailability();
 
   return (
     <footer className="bg-gray-900 text-white" aria-label="Pie de página">
@@ -110,20 +114,23 @@ export function Footer() {
           <div>
             <FooterHeading>{t.footer.contactHeading}</FooterHeading>
             <ul className="space-y-3">
+              {chatAvailable && (
               <li>
                 <button
-                  onClick={focusChatInput}
+                  onClick={() => { trackChatFocus(); focusChatInput(); }}
                   className="group inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <Bot className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                   {t.footer.contactChat}
                 </button>
               </li>
+              )}
               <li>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.footer.contactWaText)}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick('footer')}
                   className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -135,6 +142,7 @@ export function Footer() {
                   href={`https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.footer.contactMailSubject)}&body=${encodeURIComponent(t.footer.contactMailBody)}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackEmailClick('footer')}
                   className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   <Mail className="w-4 h-4 text-sky-500 flex-shrink-0" />
@@ -143,7 +151,7 @@ export function Footer() {
               </li>
               <li>
                 <button
-                  onClick={() => setFormOpen(true)}
+                  onClick={() => { trackLeadFormOpen('footer'); setFormOpen(true); }}
                   className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <ClipboardList className="w-4 h-4 text-violet-400 flex-shrink-0" />
@@ -152,9 +160,9 @@ export function Footer() {
               </li>
               <li>
                 <button
-                  onClick={openCalModal}
-                  onPointerEnter={preloadCal}
-                  onFocus={preloadCal}
+                  onClick={() => { trackCalModalOpen('footer'); openCalModal(); }}
+                  onPointerEnter={() => { trackCalPreload('footer'); preloadCal(); }}
+                  onFocus={() => { trackCalPreload('footer'); preloadCal(); }}
                   className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <CalendarDays className="w-4 h-4 text-teal-400 flex-shrink-0" />

@@ -60,7 +60,7 @@ src/
 │   └── ui/                   # Reusable UI primitives (Button, Card, Input…)
 └── lib/
     ├── utils.ts              # cn() helper (clsx + tailwind-merge)
-    ├── rate-limit.ts         # In-memory sliding-window rate limiter
+    ├── rate-limit.ts         # Rate limiter (Upstash Redis in prod, in-memory fallback in dev)
     ├── ai/
     │   └── system-prompt.ts  # LLM system prompt with legal guardrails
     └── i18n/
@@ -93,10 +93,25 @@ cp .env.example .env.local
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROQ_API_KEY` | Yes | [Groq API key](https://console.groq.com/) for the Llama 3.3 model |
-| `RESEND_API_KEY` | Yes | [Resend API key](https://resend.com/) for lead notification emails |
-| `LEAD_NOTIFY_EMAIL` | No | Email address to receive lead notifications |
+| `GROQ_API_KEY` | Yes | [Groq](https://console.groq.com/) API key |
+| `GROQ_MODEL` | No | Groq model ID. Dev default: `llama-3.1-8b-instant`. **Set `llama-3.3-70b-versatile` in Vercel for production.** |
+| `RESEND_API_KEY` | Yes | [Resend](https://resend.com/) API key for lead notification emails |
+| `LEAD_NOTIFY_EMAIL` | No | Email address to receive lead notifications (defaults to repo owner) |
+| `UPSTASH_REDIS_REST_URL` | Prod | [Upstash Redis](https://console.upstash.com/) REST URL for global rate limiting across serverless instances. Falls back to in-memory if not set. |
+| `UPSTASH_REDIS_REST_TOKEN` | Prod | Upstash Redis REST token (write access, not read-only) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | Google Analytics 4 Measurement ID (`G-XXXXXXXXXX`). Analytics disabled if not set. |
 | `NEXT_PUBLIC_SITE_URL` | No | Canonical site URL for SEO (default: `https://defensaya.com`) |
+
+### External Services
+
+| Service | Purpose | Free Tier |
+|---|---|---|
+| [Groq](https://console.groq.com/) | LLM inference (Llama 3) | 100k tokens/day (dev), 500k with Dev Tier |
+| [Resend](https://resend.com/) | Transactional email | 3,000 emails/month |
+| [Upstash Redis](https://console.upstash.com/) | Global rate limiting | 10k requests/day |
+| [Cal.com](https://cal.com/) | Scheduling embed | Free on hobby plan |
+| [Google Analytics](https://analytics.google.com/) | Usage analytics | Free |
+| [Vercel](https://vercel.com/) | Hosting & deployment | Free on hobby plan |
 
 ### Development
 
@@ -115,7 +130,7 @@ npm start
 
 ## Security
 
-- **Rate Limiting** — IP-based sliding-window limiter on all API routes (chat: 20 req/min, leads: 5 req/15 min)
+- **Rate Limiting** — IP-based sliding-window limiter on all API routes (chat: 20 req/min, leads: 5 req/15 min). Uses [Upstash Redis](https://console.upstash.com/) in production for a global counter shared across all serverless instances; falls back to in-memory in dev/test.
 - **Input Validation** — Zod schemas on every API endpoint; max message length enforced
 - **HTML Escaping** — All user-provided content escaped before email rendering
 - **Security Headers** — CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy

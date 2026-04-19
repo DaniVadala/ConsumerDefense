@@ -3,50 +3,26 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useEffect, useId, useRef, useState } from 'react';
-import { Send, User, Shield } from 'lucide-react';
+import { CalendarDays, Mail, Send, Shield, User, Square } from 'lucide-react';
+import { useCalModal } from '@/components/cal-modal';
+import { useChatAvailability } from '@/lib/chat-availability-context';
 import { DiagnosticCard } from './diagnostic-card';
+import { IntakeQuestion } from './intake-question';
+import { AreaSelector } from './area-selector';
+import { WhatsAppCTA } from './whatsapp-cta';
 import { useLocale } from '@/lib/i18n/context';
+import { trackChatMessageSent, trackChatSuggestionClick, trackChatDiagnosticGenerated, trackChatFocus, trackLeadFormOpen } from '@/lib/analytics';
 import type { UIMessage } from 'ai';
+import type { GenerarDiagnosticoArgs, AskIntakeQuestionArgs, MostrarWhatsAppCTAArgs, MostrarSelectorAreaArgs } from '@/lib/ai/tools';
+import { LeadForm } from '@/components/lead-form';
 
 const chatTransport = new DefaultChatTransport({ api: '/api/chat' });
-
-interface DiagnosticData {
-  diagnostic: true;
-  category: string;
-  provider: string;
-  relevance: 'RELEVANTE' | 'REQUIERE ANÁLISIS' | 'FUERA DE ALCANCE';
-  summary: string;
-  applicableLaws: string[];
-  legalContext: string;
-  nextSteps: string[];
-}
 
 function getMessageText(message: UIMessage): string {
   return message.parts
     .filter((p) => p.type === 'text')
     .map((p) => (p as { type: 'text'; text: string }).text)
     .join('');
-}
-
-function parseDiagnostic(content: string): DiagnosticData | null {
-  const match = content.match(/```json\s*([\s\S]*?)\s*```/);
-  if (!match) return null;
-  try {
-    const parsed = JSON.parse(match[1]);
-    if (parsed.diagnostic === true) return parsed as DiagnosticData;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function stripDiagnosticJson(content: string): string {
-  return content.replace(/```json\s*[\s\S]*?\s*```/, '').trim();
-}
-
-/** Strip incomplete JSON fences that are still streaming (no closing ```) */
-function stripPartialJson(content: string): string {
-  return content.replace(/```json[\s\S]*$/, '').trim();
 }
 
 function BotAvatar() {
@@ -101,7 +77,7 @@ export function ChatWidget() {
   // A11Y: unique ID per ChatWidget instance to avoid duplicate id="chat-input"
   const instanceId = useId();
   const inputId = `chat-input-${instanceId}`;
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, status, error, stop } = useChat({
     transport: chatTransport,
   });
 
@@ -109,6 +85,24 @@ export function ChatWidget() {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [inputFocused, setInputFocused] = useState(false);
   const isLoading = status === 'submitted' || status === 'streaming';
+
+  const { chatAvailable, setChatUnavailable } = useChatAvailability();
+  const { openCalModal } = useCalModal();
+  const [formOpen, setFormOpen] = useState(false);
+
+  // Track errors to trigger unavailable state:
+  // Any error → immediately switch to fallback (high-demand framing)
+  const setChatUnavailableRef = useRef(setChatUnavailable);
+  useEffect(() => {
+    setChatUnavailableRef.current = setChatUnavailable;
+  }, [setChatUnavailable]);
+  const unavailableCalledRef = useRef(false);
+  useEffect(() => {
+    if (error && !unavailableCalledRef.current) {
+      unavailableCalledRef.current = true;
+      setChatUnavailableRef.current();
+    }
+  }, [error]);
   const { displayed: welcomeText, done: welcomeDone } = useTypewriter(t.chat.welcome, 8);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -129,6 +123,8 @@ export function ChatWidget() {
     if (!message || isLoading) return;
     setInput('');
     setShowSuggestions(false);
+    const msgNum = messages.filter(m => m.role === 'user').length + 1;
+    trackChatMessageSent(msgNum);
     sendMessage({ text: message });
   };
 
@@ -155,18 +151,66 @@ export function ChatWidget() {
         </div>
         <div className="ml-auto flex items-center gap-2 rounded-full px-3 py-1 transition-colors duration-300" style={{ background: 'rgba(255,255,255,0.15)' }}>
           <div
-            className="w-2.5 h-2.5 rounded-full animate-pulse"
-            style={{ background: inputFocused ? '#ef4444' : 'var(--green-4)', transition: 'background 0.3s' }}
+            className={`w-2.5 h-2.5 rounded-full ${chatAvailable ? 'animate-pulse' : ''}`}
+            style={{ background: !chatAvailable ? '#f59e0b' : inputFocused ? '#ef4444' : 'var(--green-4)', transition: 'background 0.3s' }}
           />
           <span className="text-xs text-white/90 font-medium transition-all duration-300">
-            {inputFocused ? 'En vivo' : 'En línea'}
+            {!chatAvailable ? 'Alta demanda' : inputFocused ? 'En vivo' : 'En línea'}
           </span>
         </div>
       </div>
 
       {/* Messages area */}
       <div ref={scrollViewportRef} className="flex-1 overflow-y-auto" style={{ minHeight: 0, background: 'var(--slate-2)' }}>
-        {/* A11Y: aria-live region so screen readers announce new messages */}
+        {!chatAvailable ? (
+          // Fallback UI — shown when AI service is unavailable (framed as high demand)
+          <div className="flex flex-col items-center justify-center h-full gap-5 px-8 py-10 text-center" style={{ minHeight: '320px' }}>
+            {/* Animated dots — abstract representation of activity */}
+            <div className="flex items-center gap-1.5">
+              {['bg-emerald-300', 'bg-teal-300', 'bg-cyan-300', 'bg-emerald-200', 'bg-teal-200'].map((color, i) => (
+                <div
+                  key={i}
+                  className={`w-3 h-3 rounded-full ${color} animate-pulse`}
+                  style={{ animationDelay: `${i * 0.3}s` }}
+                />
+              ))}
+            </div>
+            <div>
+              <p className="font-bold text-gray-800 text-lg leading-tight mb-2">
+                ¡Hay más demanda de lo habitual!
+              </p>
+              <p className="text-sm text-gray-400 leading-relaxed max-w-[280px] mx-auto">
+                Nuestro asistente está atendiendo muchas consultas. Mientras tanto, te podemos ayudar por estos canales:
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 w-full max-w-[280px]">
+              <button
+                onClick={() => { trackLeadFormOpen('chat-fallback'); setFormOpen(true); }}
+                className="inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[var(--accent-9)] to-[var(--teal-9)] hover:opacity-90 text-white text-sm font-semibold px-6 py-3 rounded-full transition-opacity shadow-sm cursor-pointer"
+              >
+                <User className="w-4.5 h-4.5" />
+                Te contactamos nosotros
+              </button>
+              <button
+                onClick={openCalModal}
+                className="inline-flex items-center justify-center gap-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-6 py-3 rounded-full transition-colors cursor-pointer shadow-sm"
+              >
+                <CalendarDays className="w-5 h-5 text-teal-600" />
+                Reservar turno gratis
+              </button>
+              <a
+                href={`https://mail.google.com/mail/?view=cm&to=summalegales@gmail.com&su=${encodeURIComponent('Consulta desde DefensaYa')}&body=${encodeURIComponent('Hola, necesito orientación sobre un reclamo de consumidor.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-6 py-3 rounded-full transition-colors shadow-sm"
+              >
+                <Mail className="w-5 h-5 text-blue-500" />
+                Envianos un email
+              </a>
+            </div>
+          </div>
+        ) : (<>
         <div className="px-4 py-5" aria-live="polite" aria-relevant="additions">
           {/* Welcome message */}
           <div className="flex items-end gap-2 mb-4">
@@ -185,7 +229,7 @@ export function ChatWidget() {
               {t.chat.suggestions.map((suggestion) => (
                 <button
                   key={suggestion}
-                  onClick={() => handleSend(suggestion)}
+                  onClick={() => { trackChatSuggestionClick(suggestion); handleSend(suggestion); }}
                   className="text-xs font-medium px-3 py-1.5 rounded-full border border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 transition-colors cursor-pointer"
                 >
                   {suggestion}
@@ -196,10 +240,10 @@ export function ChatWidget() {
 
           {messages.map((message, idx) => {
             const isUser = message.role === 'user';
-            const rawText = getMessageText(message);
-            const isLastAssistant = !isUser && idx === messages.length - 1 && status === 'streaming';
+            const isActive = idx === messages.length - 1 && !isLoading;
 
             if (isUser) {
+              const rawText = getMessageText(message);
               return (
                 <div key={message.id} className="flex items-end justify-end gap-2 mb-4">
                   <div className="text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm max-w-[85%] leading-relaxed shadow-sm" style={{ background: 'var(--accent-9)' }}>
@@ -212,23 +256,79 @@ export function ChatWidget() {
               );
             }
 
-            const diagnostic = parseDiagnostic(rawText);
-            // While streaming, hide the partial JSON fence that hasn't closed yet
-            const text = isLastAssistant && !diagnostic ? stripPartialJson(rawText) : rawText;
-            const textContent = diagnostic ? stripDiagnosticJson(text) : text;
-
+            // Assistant message — render each part
             return (
               <div key={message.id} className="flex items-end gap-2 mb-4">
                 <div className="flex-shrink-0 self-start mt-1">
                   <BotAvatar />
                 </div>
                 <div className="max-w-[85%] space-y-2">
-                  {textContent && (
-                    <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm" style={{ border: '1px solid var(--slate-4)', color: 'var(--slate-12)' }}>
-                      {textContent}
-                    </div>
-                  )}
-                  {diagnostic && <DiagnosticCard data={diagnostic} />}
+                  {message.parts.map((part, partIdx) => {
+                    if (part.type === 'text') {
+                      const text = (part as { type: 'text'; text: string }).text;
+                      if (!text.trim()) return null;
+                      return (
+                        <div key={partIdx} className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm" style={{ border: '1px solid var(--slate-4)', color: 'var(--slate-12)' }}>
+                          {text}
+                        </div>
+                      );
+                    }
+                    // AI SDK v6: tool parts have type 'tool-{toolName}'
+                    if (part.type.startsWith('tool-')) {
+                      const toolPart = part as unknown as { type: string; state: string; input: Record<string, unknown> };
+                      const toolName = part.type.slice(5);
+                      if (toolPart.state === 'input-streaming') {
+                        return <TypingIndicator key={partIdx} label="Procesando..." />;
+                      }
+                      switch (toolName) {
+                        case 'askIntakeQuestion':
+                          return (
+                            <IntakeQuestion
+                              key={partIdx}
+                              {...(toolPart.input as AskIntakeQuestionArgs)}
+                              onSelect={handleSend}
+                              isActive={isActive}
+                            />
+                          );
+                        case 'generarDiagnostico': {
+                          const diagInput = toolPart.input as GenerarDiagnosticoArgs;
+                          trackChatDiagnosticGenerated(diagInput.caso_id, diagInput.area);
+                          return (
+                            <DiagnosticCard
+                              key={partIdx}
+                              diagnostico={diagInput}
+                            />
+                          );
+                        }
+                        case 'mostrarWhatsAppCTA': {
+                          const ctaInput = toolPart.input as MostrarWhatsAppCTAArgs;
+                          return (
+                            <WhatsAppCTA
+                              key={partIdx}
+                              casoId={ctaInput.caso_id}
+                              area={ctaInput.area}
+                              proveedor={ctaInput.proveedor}
+                              resumen={ctaInput.resumen}
+                            />
+                          );
+                        }
+                        case 'mostrarSelectorArea': {
+                          const areaInput = toolPart.input as MostrarSelectorAreaArgs;
+                          return (
+                            <AreaSelector
+                              key={partIdx}
+                              mensaje={areaInput.mensaje}
+                              onSelect={handleSend}
+                              isActive={isActive}
+                            />
+                          );
+                        }
+                        default:
+                          return null;
+                      }
+                    }
+                    return null;
+                  })}
                 </div>
               </div>
             );
@@ -236,17 +336,13 @@ export function ChatWidget() {
 
           {isLoading && <TypingIndicator label={t.chat.typing} />}
 
-          {/* DATA-RELIABILITY: Show error to user when chat stream fails */}
-          {error && (
-            <div className="mx-2 mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert">
-              Hubo un error al procesar tu mensaje. Intentá de nuevo.
-            </div>
-          )}
+
         </div>
+        </>)}
       </div>
 
       {/* Hint bar — visible before first message, inside the card */}
-      {showSuggestions && messages.length === 0 && (
+      {chatAvailable && showSuggestions && messages.length === 0 && (
           <div
             className="flex-shrink-0 flex justify-center py-2 bg-slate-50 border-t border-slate-100"
           >
@@ -260,8 +356,8 @@ export function ChatWidget() {
           </div>
       )}
 
-      {/* Input area */}
-      <div className="flex-shrink-0 px-4 py-3 bg-white" style={{ borderTop: '1px solid var(--slate-4)' }}>
+      {/* Input area — hidden when service unavailable */}
+      {chatAvailable && <div className="flex-shrink-0 px-4 py-3 bg-white" style={{ borderTop: '1px solid var(--slate-4)' }}>
         <div className="flex items-end gap-2">
           <textarea
             id={inputId}
@@ -296,7 +392,7 @@ export function ChatWidget() {
               maxHeight: '4.5rem',
               transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
             }}
-            onFocus={() => setInputFocused(true)}
+            onFocus={() => { setInputFocused(true); trackChatFocus(); }}
             onBlur={() => setInputFocused(false)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -319,8 +415,18 @@ export function ChatWidget() {
           >
             <Send size={16} />
           </button>
+          {status === 'streaming' && (
+            <button
+              onClick={() => stop()}
+              aria-label="Detener respuesta"
+              className="w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center flex-shrink-0 mb-0.5 transition-colors cursor-pointer"
+            >
+              <Square size={14} />
+            </button>
+          )}
         </div>
-      </div>
+      </div>}
+      <LeadForm open={formOpen} onOpenChange={setFormOpen} />
     </div>
   );
 }

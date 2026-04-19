@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CheckCircle, X } from 'lucide-react';
+import { trackLeadFormSubmit, trackLeadFormError } from '@/lib/analytics';
 
 const leadSchema = z.object({
   nombre: z.string().min(2, 'Ingresá tu nombre'),
@@ -63,12 +64,15 @@ export function LeadForm({ open, onOpenChange }: LeadFormProps) {
       });
       if (res.ok) {
         setSubmitted(true);
+        trackLeadFormSubmit();
         reset();
       } else {
         setSubmitError(true);
+        trackLeadFormError();
       }
     } catch {
       setSubmitError(true);
+      trackLeadFormError();
     }
   };
 

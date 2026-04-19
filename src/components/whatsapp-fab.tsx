@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
+import { trackWhatsAppClick, trackFabTooltipShown, trackFabTooltipDismissed } from '@/lib/analytics';
 
 const WHATSAPP_NUMBER = '5493512852894';
 
@@ -15,7 +16,10 @@ export function WhatsAppFab() {
   // Show tooltip after 6s if user hasn't scrolled to InfoSection
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!dismissed) setShowTooltip(true);
+      if (!dismissed) {
+        setShowTooltip(true);
+        trackFabTooltipShown();
+      }
     }, 6000);
     return () => clearTimeout(timer);
   }, [dismissed]);
@@ -35,7 +39,7 @@ export function WhatsAppFab() {
             className="relative bg-white rounded-xl shadow-lg border border-gray-200 px-4 py-3 max-w-[220px] text-sm"
           >
             <button
-              onClick={() => { setDismissed(true); setShowTooltip(false); }}
+              onClick={() => { setDismissed(true); setShowTooltip(false); trackFabTooltipDismissed(); }}
               className="absolute -top-2 -right-2 bg-gray-100 hover:bg-gray-200 rounded-full p-0.5 transition-colors"
               aria-label="Cerrar"
             >
@@ -54,7 +58,7 @@ export function WhatsAppFab() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Contactar por WhatsApp"
-        onClick={() => setDismissed(true)}
+        onClick={() => { setDismissed(true); trackWhatsAppClick('fab'); }}
         className="group flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#20bd5a] shadow-[0_4px_20px_-2px_rgba(37,211,102,0.5)] hover:shadow-[0_6px_28px_-2px_rgba(37,211,102,0.6)] transition-all hover:scale-105 active:scale-95"
       >
         {/* WhatsApp SVG icon */}

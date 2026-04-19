@@ -3,8 +3,10 @@
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useCalModal } from '@/components/cal-modal';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, MessageCircle } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
+import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick } from '@/lib/analytics';
+import { useChatAvailability } from '@/lib/chat-availability-context';
 
 const ChatWidget = dynamic(
   () => import('@/components/chat/chat-widget').then(m => ({ default: m.ChatWidget })),
@@ -35,6 +37,7 @@ function focusChatInput() {
   const all = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
   const textarea = Array.from(all).find((el) => el.offsetParent !== null);
   if (!textarea) return;
+  trackChatFocus();
   textarea.focus();
   const rect = textarea.getBoundingClientRect();
   window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
@@ -43,6 +46,13 @@ function focusChatInput() {
 export function Hero() {
   const { t } = useLocale();
   const { openCalModal, preloadCal } = useCalModal();
+  const { chatAvailable } = useChatAvailability();
+
+  const waUrl = 'https://wa.me/5493512852894?text=' + encodeURIComponent('Hola, necesito ayuda con un reclamo de consumidor');
+
+  const handleCalOpen = () => { trackCalModalOpen('hero'); openCalModal(); };
+  const handleCalPreload = () => { trackCalPreload('hero'); preloadCal(); };
+
   return (
     <section
       id="chat"
@@ -95,17 +105,19 @@ export function Hero() {
 
           {/* 4. Chat widget — fixed height so it doesn't collapse */}
           <div>
-            {/* Pill above widget — clickable */}
-            <div className="flex justify-center mb-2">
-              <button
-                onClick={focusChatInput}
-                className="cursor-pointer inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
-              >
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                Diagnóstico inmediato con IA
-                <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">GRATIS</span>
-              </button>
-            </div>
+            {/* Pill above widget — only shown when chat is available */}
+            {chatAvailable && (
+              <div className="flex justify-center mb-2">
+                <button
+                  onClick={focusChatInput}
+                  className="cursor-pointer inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+                >
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  Diagnóstico inmediato con IA
+                  <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">GRATIS</span>
+                </button>
+              </div>
+            )}
             <div className="h-[480px] rounded-2xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
               <ChatWidget />
             </div>
@@ -129,21 +141,34 @@ export function Hero() {
 
           {/* 6. CTA + WA link */}
           <div className="flex flex-col items-center gap-1.5">
-            <button
-              onClick={focusChatInput}
-              className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
-            >
-              {t.hero.ctaButton}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-            </button>
+            {chatAvailable ? (
+              <button
+                onClick={focusChatInput}
+                className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
+              >
+                {t.hero.ctaButton}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+              </button>
+            ) : (
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick('hero')}
+                className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1faf38] text-white text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full"
+              >
+                <MessageCircle className="w-5 h-5 fill-white" strokeWidth={1.5} />
+                Escribinos por WhatsApp
+              </a>
+            )}
             <span className="text-xs text-white/55">{t.hero.ctaSubtext}</span>
 
             {/* Secondary CTA — Cal.com meeting */}
             <div className="flex flex-col items-center gap-1 mt-3 w-full">
               <button
-                onClick={openCalModal}
-                onPointerEnter={preloadCal}
-                onFocus={preloadCal}
+                onClick={handleCalOpen}
+                onPointerEnter={handleCalPreload}
+                onFocus={handleCalPreload}
                 className="cursor-pointer inline-flex items-center justify-center gap-2 border border-white/30 bg-transparent hover:bg-white/10 text-white text-sm font-semibold px-6 py-2.5 rounded-full transition-all whitespace-nowrap w-auto group"
               >
                 {t.hero.calButton}
@@ -206,21 +231,34 @@ export function Hero() {
               />
               {/* CTA buttons — overlap the bottom of the image */}
               <div className="flex flex-col items-center gap-1 w-full max-w-sm -mt-8 relative z-10">
-                  <button
-                    onClick={focusChatInput}
-                    className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
-                  >
-                    {t.hero.ctaButton}
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-                  </button>
+                  {chatAvailable ? (
+                    <button
+                      onClick={focusChatInput}
+                      className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
+                    >
+                      {t.hero.ctaButton}
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                    </button>
+                  ) : (
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackWhatsAppClick('hero')}
+                      className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1faf38] text-white text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full"
+                    >
+                      <MessageCircle className="w-5 h-5 fill-white" strokeWidth={1.5} />
+                      Escribinos por WhatsApp
+                    </a>
+                  )}
                   <span className="text-xs text-white/60">{t.hero.ctaSubtext}</span>
 
                   {/* Secondary CTA — Cal.com meeting */}
                   <div className="flex flex-col items-center gap-1 mt-3 w-full">
                     <button
-                      onClick={openCalModal}
-                      onPointerEnter={preloadCal}
-                      onFocus={preloadCal}
+                      onClick={handleCalOpen}
+                      onPointerEnter={handleCalPreload}
+                      onFocus={handleCalPreload}
                       className="cursor-pointer inline-flex items-center justify-center gap-2 border border-white/30 bg-transparent hover:bg-white/10 text-white text-sm font-semibold px-6 py-2.5 rounded-full transition-all whitespace-nowrap w-auto group"
                     >
                       {t.hero.calButton}
@@ -241,22 +279,24 @@ export function Hero() {
               <div className="relative w-full max-w-md flex flex-col gap-3">
                 {/* Glow halo */}
                 <div className="absolute -inset-4 bg-gradient-to-r from-[var(--accent-9)]/20 to-[var(--teal-9)]/20 rounded-3xl blur-2xl pointer-events-none" />
-                {/* Pill — above chat widget — clickable */}
-                <div className="relative flex-shrink-0 flex justify-center pt-1">
-                  <button
-                    onClick={() => {
-                      document.querySelector<HTMLTextAreaElement>('[data-chat-input]')?.focus();
-                      document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }}
-                    className="cursor-pointer inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
-                  >
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                    Diagnóstico inmediato con IA
-                    <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">
-                      GRATIS
-                    </span>
-                  </button>
-                </div>
+                {/* Pill — above chat widget — only shown when chat is available */}
+                {chatAvailable && (
+                  <div className="relative flex-shrink-0 flex justify-center pt-1">
+                    <button
+                      onClick={() => {
+                        document.querySelector<HTMLTextAreaElement>('[data-chat-input]')?.focus();
+                        document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                      className="cursor-pointer inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+                    >
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                      Diagnóstico inmediato con IA
+                      <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">
+                        GRATIS
+                      </span>
+                    </button>
+                  </div>
+                )}
                 <div className="relative flex-1 overflow-hidden rounded-2xl min-h-0 shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
                   <ChatWidget />
                 </div>

@@ -25,7 +25,7 @@ function escapeHtml(str: string): string {
 export async function POST(req: Request) {
   // SEC: Rate limit by IP — 5 submissions per 15 minutes to prevent spam
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  const { success } = rateLimit(`lead:${ip}`, { maxRequests: 5, windowMs: 15 * 60_000 });
+  const { success } = await rateLimit(`lead:${ip}`, { maxRequests: 5, windowMs: 15 * 60_000 });
   if (!success) {
     return Response.json({ success: false, error: 'Demasiados intentos. Intentá más tarde.' }, { status: 429 });
   }

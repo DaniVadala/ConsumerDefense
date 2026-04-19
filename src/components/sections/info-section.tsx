@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { MessageCircle, Mail, User, Bot, ArrowRight, CalendarDays } from 'lucide-react';
-import { LeadForm } from './lead-form';
-import { useCalModal } from './cal-modal';
+import { LeadForm } from '../lead-form';
+import { useCalModal } from '../cal-modal';
 import { useLocale } from '@/lib/i18n/context';
+import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen } from '@/lib/analytics';
+import { useChatAvailability } from '@/lib/chat-availability-context';
 
 const WHATSAPP_NUMBER = '5493512852894';
 const CONTACT_EMAIL = 'summalegales@gmail.com';
@@ -13,6 +15,7 @@ export function InfoSection() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
   const { openCalModal, preloadCal } = useCalModal();
+  const { chatAvailable } = useChatAvailability();
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
   const mailUrl = `https://mail.google.com/mail/?view=cm&to=${CONTACT_EMAIL}&su=${encodeURIComponent(t.info.mailSubject)}&body=${encodeURIComponent(t.info.mailBody)}`;
@@ -37,13 +40,14 @@ export function InfoSection() {
         </div>
 
         {/* ── Primary CTAs ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div className={`grid grid-cols-1 gap-4 mb-4 ${chatAvailable ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
 
-          {/* AI Chat — primary */}
-          <a
+          {/* AI Chat — primary (hidden when service unavailable) */}
+          {chatAvailable && <a
             href="#chat"
             onClick={(e) => {
               e.preventDefault();
+              trackChatFocus();
               const inputs = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
               const textarea = Array.from(inputs).find(el => el.offsetParent !== null);
               if (textarea) {
@@ -73,13 +77,13 @@ export function InfoSection() {
                 {t.info.aiDesc}
               </p>
             </div>
-          </a>
+          </a>}
 
           {/* Cal.com — Schedule meeting — primary */}
           <button
-            onClick={openCalModal}
-            onPointerEnter={preloadCal}
-            onFocus={preloadCal}
+            onClick={() => { trackCalModalOpen('info'); openCalModal(); }}
+            onPointerEnter={() => { trackCalPreload('info'); preloadCal(); }}
+            onFocus={() => { trackCalPreload('info'); preloadCal(); }}
             className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] text-white shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden text-left"
           >
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
@@ -105,6 +109,7 @@ export function InfoSection() {
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackWhatsAppClick('info')}
             className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[#1faf38] to-[#25D366] text-white shadow-lg shadow-green-200/50 hover:shadow-xl hover:shadow-green-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
           >
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
@@ -134,6 +139,7 @@ export function InfoSection() {
             href={mailUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEmailClick('info')}
             className="group flex items-center gap-4 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.14)] hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-200"
           >
             <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
@@ -148,7 +154,7 @@ export function InfoSection() {
 
           {/* Lead form */}
           <button
-            onClick={() => setFormOpen(true)}
+            onClick={() => { trackLeadFormOpen('info'); setFormOpen(true); }}
             className="group flex items-center gap-4 px-5 py-4 bg-white border border-gray-200 rounded-xl shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.14)] hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-200 text-left w-full"
           >
             <div className="w-9 h-9 bg-[var(--accent-3)] rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
