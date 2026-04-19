@@ -9,7 +9,7 @@ import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick,
 import { useChatAvailability } from '@/lib/chat-availability-context';
 
 const WHATSAPP_NUMBER = '5493515284074';
-const CONTACT_EMAIL = 'summalegales@gmail.com';
+const CONTACT_EMAIL = 'angelyocca@hotmail.com';
 
 export function InfoSection() {
   const { t } = useLocale();

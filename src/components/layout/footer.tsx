@@ -10,7 +10,7 @@ import { useChatAvailability } from '@/lib/chat-availability-context';
 
 
 const WHATSAPP_NUMBER = '5493515284074';
-const CONTACT_EMAIL = 'summalegales@gmail.com';
+const CONTACT_EMAIL = 'angelyocca@hotmail.com';
 
 function focusChatInput() {
   const inputs = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
