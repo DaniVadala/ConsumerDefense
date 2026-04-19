@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
 import { trackWhatsAppClick, trackFabTooltipShown, trackFabTooltipDismissed } from '@/lib/analytics';
 
-const WHATSAPP_NUMBER = '5493512852894';
+const WHATSAPP_NUMBER = '5493515284074';
 
 export function WhatsAppFab() {
   const { t } = useLocale();

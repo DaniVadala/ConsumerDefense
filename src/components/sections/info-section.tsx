@@ -8,7 +8,7 @@ import { useLocale } from '@/lib/i18n/context';
 import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen } from '@/lib/analytics';
 import { useChatAvailability } from '@/lib/chat-availability-context';
 
-const WHATSAPP_NUMBER = '5493512852894';
+const WHATSAPP_NUMBER = '5493515284074';
 const CONTACT_EMAIL = 'summalegales@gmail.com';
 
 export function InfoSection() {

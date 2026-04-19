@@ -3,7 +3,7 @@ import { rateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const TO_EMAIL = process.env.LEAD_NOTIFY_EMAIL || 'vadaladaniel82@gmail.com';
+const TO_EMAIL = process.env.LEAD_NOTIFY_EMAIL || 'angelyocca@hotmail.com';
 
 const leadSchema = z.object({
   nombre: z.string().min(2).max(100),

@@ -48,7 +48,7 @@ export function Hero() {
   const { openCalModal, preloadCal } = useCalModal();
   const { chatAvailable } = useChatAvailability();
 
-  const waUrl = 'https://wa.me/5493512852894?text=' + encodeURIComponent('Hola, necesito ayuda con un reclamo de consumidor');
+  const waUrl = 'https://wa.me/5493515284074?text=' + encodeURIComponent('Hola, necesito ayuda con un reclamo de consumidor');
 
   const handleCalOpen = () => { trackCalModalOpen('hero'); openCalModal(); };
   const handleCalPreload = () => { trackCalPreload('hero'); preloadCal(); };

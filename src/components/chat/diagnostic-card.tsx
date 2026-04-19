@@ -4,7 +4,7 @@ import { Scale, Info, ChevronRight, FileText, Clock, AlertTriangle } from 'lucid
 import type { GenerarDiagnosticoArgs } from '@/lib/ai/tools';
 import { trackWhatsAppClick } from '@/lib/analytics';
 
-const WHATSAPP_NUMBER = '5493512852894';
+const WHATSAPP_NUMBER = '5493515284074';
 
 const areaLabels: Record<string, string> = {
   telecomunicaciones: 'Telecomunicaciones',

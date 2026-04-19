@@ -9,7 +9,7 @@ import { trackChatFocus, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen,
 import { useChatAvailability } from '@/lib/chat-availability-context';
 
 
-const WHATSAPP_NUMBER = '5493512852894';
+const WHATSAPP_NUMBER = '5493515284074';
 const CONTACT_EMAIL = 'summalegales@gmail.com';
 
 function focusChatInput() {
