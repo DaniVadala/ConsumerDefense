@@ -3,7 +3,7 @@
 // Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to enable the Redis backend.
 
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { getRedisClient } from '@/lib/redis';
 
 // ─── In-memory fallback ───────────────────────────────────────────────────────
 
@@ -46,17 +46,6 @@ function rateLimitMemory(
 
 // ─── Upstash backend ──────────────────────────────────────────────────────────
 
-let upstashClient: Redis | null = null;
-
-function getUpstashClient(): Redis | null {
-  if (upstashClient) return upstashClient;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
-  upstashClient = new Redis({ url, token });
-  return upstashClient;
-}
-
 // Convert milliseconds to Upstash Duration string (e.g. 60_000 → "60 s")
 function msToUpstashDuration(ms: number): string {
   if (ms < 1_000) return `${ms} ms`;
@@ -73,7 +62,7 @@ function getLimiter(maxRequests: number, windowMs: number): Ratelimit {
   let limiter = limiters.get(cacheKey);
   if (!limiter) {
     limiter = new Ratelimit({
-      redis: getUpstashClient()!,
+      redis: getRedisClient()!,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       limiter: Ratelimit.slidingWindow(maxRequests, msToUpstashDuration(windowMs) as any),
       prefix: '@defensaya/rl',
@@ -95,7 +84,7 @@ export async function rateLimit(
   key: string,
   { maxRequests, windowMs }: { maxRequests: number; windowMs: number },
 ): Promise<{ success: boolean }> {
-  if (!getUpstashClient()) {
+  if (!getRedisClient()) {
     return rateLimitMemory(key, { maxRequests, windowMs });
   }
   const { success } = await getLimiter(maxRequests, windowMs).limit(key);

@@ -1,102 +1,98 @@
 'use client';
 
 import { useState } from 'react';
-import { Send } from 'lucide-react';
-import { ProgressBar } from './progress-bar';
-import { trackChatIntakeAnswer } from '@/lib/analytics';
 
 interface IntakeQuestionProps {
   pregunta: string;
+  placeholder?: string;
   opciones: string[];
-  paso_actual: number;
-  paso_total: number;
-  area_identificada?: string;
+  tipoInput: 'seleccion' | 'texto_libre' | 'si_no';
+  pasoActual: number;
+  pasoTotal: number;
   onSelect: (text: string) => void;
   isActive: boolean;
 }
 
 export function IntakeQuestion({
   pregunta,
+  placeholder,
   opciones,
-  paso_actual,
-  paso_total,
+  tipoInput,
+  pasoActual,
+  pasoTotal,
   onSelect,
   isActive,
 }: IntakeQuestionProps) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [showFreeInput, setShowFreeInput] = useState(false);
-  const [freeText, setFreeText] = useState('');
+  const [textoLibre, setTextoLibre] = useState('');
+  const [answered, setAnswered] = useState(false);
 
-  const handleChipClick = (opcion: string) => {
-    if (!isActive || selected) return;
-    if (opcion.toLowerCase() === 'otro') {
-      setShowFreeInput(true);
-      return;
-    }
-    setSelected(opcion);
-    trackChatIntakeAnswer(paso_actual, paso_total);
-    onSelect(opcion);
-  };
-
-  const handleFreeSubmit = () => {
-    const text = freeText.trim();
-    if (!text || !isActive) return;
-    setSelected(text);
-    setShowFreeInput(false);
-    trackChatIntakeAnswer(paso_actual, paso_total);
+  const handleSelect = (text: string) => {
+    if (!isActive || answered) return;
+    setAnswered(true);
     onSelect(text);
   };
 
+  const handleTextSubmit = () => {
+    if (!textoLibre.trim() || !isActive || answered) return;
+    setAnswered(true);
+    onSelect(textoLibre.trim());
+  };
+
+  const progress = Math.round((pasoActual / pasoTotal) * 100);
+
   return (
-    <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm" style={{ maxWidth: '100%' }}>
-      <ProgressBar pasoActual={paso_actual} pasoTotal={paso_total} />
+    <div className="mt-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+      {/* Progress */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${progress}%`, background: 'var(--accent-9)' }}
+          />
+        </div>
+        <span className="text-xs text-gray-400 flex-shrink-0">{pasoActual}/{pasoTotal}</span>
+      </div>
 
-      <p className="text-sm font-medium mb-3" style={{ color: 'var(--slate-12)' }}>
-        {pregunta}
-      </p>
+      {/* Pregunta */}
+      <p className="text-sm font-medium text-gray-800 mb-2">{pregunta}</p>
 
-      <div className="flex flex-wrap gap-2">
-        {opciones.map((opcion) => {
-          const isSelected = selected === opcion;
-          const isDisabled = !isActive || (selected !== null && !isSelected);
-
-          return (
+      {/* Opciones */}
+      {(tipoInput === 'seleccion' || tipoInput === 'si_no') && (
+        <div className="flex flex-wrap gap-2">
+          {opciones.map((opcion) => (
             <button
               key={opcion}
-              onClick={() => handleChipClick(opcion)}
-              disabled={isDisabled}
-              className="text-sm px-3 py-1.5 rounded-full border transition-colors cursor-pointer disabled:cursor-default"
-              style={{
-                borderColor: isSelected ? 'var(--accent-9)' : 'var(--slate-6)',
-                background: isSelected ? 'var(--accent-9)' : 'white',
-                color: isSelected ? 'white' : 'var(--slate-11)',
-                opacity: isDisabled && !isSelected ? 0.5 : 1,
-              }}
+              onClick={() => handleSelect(opcion)}
+              disabled={!isActive || answered}
+              className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+                answered || !isActive
+                  ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-default'
+                  : 'border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 cursor-pointer'
+              }`}
             >
               {opcion}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {showFreeInput && !selected && (
-        <div className="flex items-center gap-2 mt-3">
+      {tipoInput === 'texto_libre' && (
+        <div className="flex gap-2">
           <input
             type="text"
-            value={freeText}
-            onChange={(e) => setFreeText(e.target.value)}
-            placeholder="Escribí tu respuesta..."
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleFreeSubmit();
-            }}
+            value={textoLibre}
+            onChange={(e) => setTextoLibre(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
+            disabled={!isActive || answered}
+            placeholder={placeholder || 'Escribí tu respuesta...'}
+            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-emerald-400 disabled:bg-gray-50 disabled:text-gray-400"
           />
           <button
-            onClick={handleFreeSubmit}
-            disabled={!freeText.trim()}
-            className="w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            onClick={handleTextSubmit}
+            disabled={!isActive || answered || !textoLibre.trim()}
+            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium disabled:opacity-40 cursor-pointer disabled:cursor-default"
           >
-            <Send size={12} />
+            OK
           </button>
         </div>
       )}

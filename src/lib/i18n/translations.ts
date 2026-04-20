@@ -87,7 +87,7 @@ const es = {
     placeholder: 'Contame tu problema...',
     hintText: 'Escribí tu consulta acá · gratis y confidencial',
     welcome:
-      '¡Hola! Soy DefensaYa 🤖 Contame qué problema tuviste con alguna empresa, banco o servicio, y te ayudo a entender qué podés hacer.',
+      '¡Hola! Soy DefensaYa 🤖 Los reclamos de consumo en Argentina tienen plazos — contame qué pasó y en 2 minutos tenés un diagnóstico preliminar.',
     suggestions: [
       'Me cobraron de más en la tarjeta',
       'No respetan la garantía del producto',

@@ -1,87 +1,111 @@
 import { z } from 'zod';
 import { tool } from 'ai';
 
-export const askIntakeQuestionSchema = z.object({
-  pregunta: z.string().describe('La pregunta a mostrar al usuario'),
-  opciones: z.array(z.string()).min(2).max(6).describe('Opciones de respuesta como botones.'),
-  paso_actual: z.number().min(1).max(5).describe('Número de paso actual en el intake (1-5)'),
-  paso_total: z.number().min(3).max(5).describe('Total de pasos del intake'),
-  area_identificada: z.string().optional().describe('Área de reclamo si ya se determinó'),
-});
+// ── Constantes exportadas (usadas por diagnostic-card) ──────────────────────
 
-export const generarDiagnosticoSchema = z.object({
-  caso_id: z.string().describe('ID del caso formato RB-YYYY-XXXX'),
-  area: z.enum([
-    'telecomunicaciones',
-    'financiero',
-    'electrodomesticos',
-    'ecommerce',
-    'seguros_prepaga',
-    'servicios_publicos',
-    'turismo_aereo',
-  ]).describe('Área del reclamo identificada'),
-  proveedor: z.string().describe('Nombre de la empresa proveedora'),
-  problema_principal: z.string().describe('Resumen del problema en una oración'),
-  tiempo_del_problema: z.string().describe('Hace cuánto tiene el problema'),
+export const AREAS_RECLAMO = [
+  'telecomunicaciones',
+  'financiero',
+  'electrodomesticos',
+  'ecommerce',
+  'seguros_prepaga',
+  'servicios_publicos',
+  'turismo_aereo',
+] as const;
+
+export const LEGISLACION_AUTORIZADA = [
+  'Ley 24.240 - Defensa del Consumidor',
+  'Ley 26.361 - Modificatoria LDC',
+  'Ley 26.993 - COPREC',
+  'Ley 25.065 - Tarjetas de Crédito',
+  'CCyCN Arts. 1092-1122',
+  'Ley 26.682 - Medicina Prepaga',
+  'Ley 17.418 - Seguros',
+  'Resolución ENACOM (general)',
+  'Marco regulatorio ENRE',
+  'Marco regulatorio ENARGAS',
+  'Resolución SCI 1033/2021 - VUF',
+  'Código Aeronáutico',
+  'Ley 24.240 Art. 34 - Revocación',
+  'Ley 24.240 Arts. 11-18 - Garantías',
+] as const;
+
+export const RANGOS_MONTO = [
+  'No especificado',
+  'Menos de $50.000',
+  '$50.000 - $200.000',
+  '$200.000 - $1.000.000',
+  'Más de $1.000.000',
+] as const;
+
+export const FORTALEZA_DOCUMENTAL = [
+  'Documentación sólida',
+  'Documentación parcial',
+  'Documentación pendiente de reunir',
+] as const;
+
+export const URLS_OFICIALES: Record<string, string> = {
+  'Ventanilla Única Federal': 'https://www.argentina.gob.ar/servicio/iniciar-un-reclamo-ante-defensa-del-consumidor',
+  'COPREC': 'https://www.argentina.gob.ar/justicia/derechofacil/leysimple/coprec',
+  'ENACOM': 'https://www.enacom.gob.ar/reclamos',
+  'ENRE': 'https://www.enre.gov.ar/web/web.nsf/Reclamos',
+  'ENARGAS': 'https://www.enargas.gob.ar/secciones/consumidores/reclamos.php',
+  'SSS': 'https://www.argentina.gob.ar/sssalud',
+  'BCRA': 'https://www.bcra.gob.ar/BCRAyVos/Usuarios_Financieros.asp',
+};
+
+export const DISCLAIMER_FIJO =
+  'Esta orientación es automatizada y no constituye asesoramiento legal profesional. Consultá con un abogado matriculado antes de actuar.' as const;
+
+// ── Schemas ──────────────────────────────────────────────────────────────────
+
+const generarDiagnosticoSchema = z.object({
+  caso_id: z.string().describe('ID del caso. Formato: RB-YYYY-XXXX'),
+  area: z.enum(AREAS_RECLAMO),
+  proveedor: z.string().default('No especificado'),
+  problema_principal: z.string().max(150),
+  tiempo_del_problema: z.string().default('No especificado'),
   reclamo_previo: z.object({
     realizado: z.boolean(),
-    con_numero_gestion: z.boolean(),
+    con_numero_gestion: z.boolean().default(false),
     numero_gestion: z.string().optional(),
   }),
-  documentacion_disponible: z.array(z.string()).describe('Lista de documentos que tiene el usuario'),
-  monto_declarado: z.string().describe('Rango de monto autodeclarado por el usuario. NO calcular daño.'),
-  legislacion_aplicable: z.array(z.string()).describe('Leyes y resoluciones aplicables. Solo citar, NO interpretar.'),
-  escenarios_resolucion: z.array(z.object({
-    via: z.string(),
-    descripcion: z.string(),
-    url: z.string().optional().describe('URL oficial del recurso si existe'),
-  })).describe('Vías generales de resolución como información pública. NO recomendar cuál elegir.'),
-  lead_score: z.number().min(0).max(12).describe('Score interno 0-12. reclamo_previo(0-3)+documentacion(0-3)+monto(0-3)+datos_completos(0-3). No mostrar al usuario.'),
+  documentacion_disponible: z.array(z.string()).default([]),
+  monto_declarado: z.enum(RANGOS_MONTO).default('No especificado'),
+  legislacion_aplicable: z.array(z.enum(LEGISLACION_AUTORIZADA)).min(1).max(4),
+  fortaleza_documental: z.enum(FORTALEZA_DOCUMENTAL),
+  documentacion_sugerida: z.array(z.string()).max(3).default([]),
+  escenarios_resolucion: z
+    .array(z.object({ via: z.string(), descripcion: z.string().max(120) }))
+    .length(3),
+  disclaimer: z.literal(DISCLAIMER_FIJO),
 });
 
-export const mostrarWhatsAppCTASchema = z.object({
-  caso_id: z.string().describe('El caso_id que se generó en el diagnóstico'),
-  area: z.string().describe('Área del reclamo, ej: telecomunicaciones'),
-  proveedor: z.string().describe('Nombre de la empresa proveedora'),
-  resumen: z.string().max(100).describe('Resumen del problema en una línea corta'),
+const mostrarWhatsAppCTASchema = z.object({
+  caso_id: z.string(),
+  area: z.string(),
+  proveedor: z.string(),
+  resumen: z.string().max(120),
 });
 
-export const mostrarSelectorAreaSchema = z.object({
-  mensaje: z.string().describe('Texto introductorio antes del selector. Las áreas se muestran automáticamente.'),
-});
+// ── Tools ────────────────────────────────────────────────────────────────────
 
-export type AskIntakeQuestionArgs = z.infer<typeof askIntakeQuestionSchema>;
+export const chatTools = {
+  generarDiagnostico: tool({
+    description:
+      'Genera el diagnóstico del caso. Llamar cuando tengas: empresa + problema + si reclamó antes. Siempre llamar inmediatamente después mostrarWhatsAppCTA.',
+    inputSchema: generarDiagnosticoSchema,
+    execute: async () => 'Diagnóstico generado.',
+  }),
+  mostrarWhatsAppCTA: tool({
+    description:
+      'Muestra botón de WhatsApp para contactar al abogado. Llamar SIEMPRE inmediatamente después de generarDiagnostico.',
+    inputSchema: mostrarWhatsAppCTASchema,
+    execute: async () => 'CTA mostrado.',
+  }),
+};
+
+// ── Tipos exportados ─────────────────────────────────────────────────────────
+
 export type GenerarDiagnosticoArgs = z.infer<typeof generarDiagnosticoSchema>;
 export type MostrarWhatsAppCTAArgs = z.infer<typeof mostrarWhatsAppCTASchema>;
-export type MostrarSelectorAreaArgs = z.infer<typeof mostrarSelectorAreaSchema>;
-
-export const askIntakeQuestion = tool({
-  description: 'Pregunta de intake con opciones como botones. UNA por turno.',
-  inputSchema: askIntakeQuestionSchema,
-  execute: async () => 'Pregunta mostrada.',
-});
-
-export const generarDiagnostico = tool({
-  description: 'Diagnóstico del caso. Llamar cuando se tengan: problema + cuándo + monto + reclamo previo.',
-  inputSchema: generarDiagnosticoSchema,
-  execute: async () => 'Diagnóstico mostrado.',
-});
-
-export const mostrarWhatsAppCTA = tool({
-  description: 'Botón WhatsApp post-diagnóstico. Llamar INMEDIATAMENTE después de generarDiagnostico.',
-  inputSchema: mostrarWhatsAppCTASchema,
-  execute: async () => 'Botón mostrado.',
-});
-
-export const mostrarSelectorArea = tool({
-  description: 'Muestra selector de áreas. Solo enviar mensaje, las áreas son fijas en el frontend.',
-  inputSchema: mostrarSelectorAreaSchema,
-  execute: async () => 'Selector mostrado.',
-});
-
-export const reclamobotTools = {
-  askIntakeQuestion,
-  generarDiagnostico,
-  mostrarWhatsAppCTA,
-  mostrarSelectorArea,
-};
