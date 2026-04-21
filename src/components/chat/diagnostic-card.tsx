@@ -60,6 +60,7 @@ const UI_ES = {
   encuadre: 'Para encuadrar tu caso',
   aviso: '⚠️ Aviso importante:',
   proximoPaso: '¿Qué pasa al tocar el botón?',
+  danos: 'Un abogado matriculado puede determinar y cuantificar los daños que correspondan: económico, moral y/o punitivo.',
   ctaUrgente: 'Hablar con un abogado YA (sin cargo inicial)',
   ctaNormal: 'Consultar con un abogado (sin cargo inicial)',
   urgenciaCritica: 'Situación crítica: conviene actuar sin demora.',
@@ -85,6 +86,7 @@ const UI_EN = {
   encuadre: 'Context for your case',
   aviso: '⚠️ Important notice:',
   proximoPaso: 'What happens when you tap the button?',
+  danos: 'A licensed attorney can determine and quantify applicable damages: economic, moral and/or punitive.',
   ctaUrgente: 'Talk to a lawyer NOW (no upfront fee)',
   ctaNormal: 'Consult a lawyer (no upfront fee)',
   urgenciaCritica: 'Critical situation: it is advisable to act without delay.',
@@ -284,6 +286,11 @@ export function DiagnosticCard({ data }: { data: DiagnosticoData }) {
           {data.proximoPaso}
         </div>
       )}
+
+      {/* Daños */}
+      <p className="text-xs text-gray-500 leading-snug mb-2">
+        {ui.danos}
+      </p>
 
       {/* CTA */}
       <a
