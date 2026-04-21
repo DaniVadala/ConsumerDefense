@@ -341,6 +341,7 @@ export function ChatWidget() {
           <textarea
             id={inputId}
             ref={textareaRef}
+            data-chat-input
             value={input}
             aria-label={t.chat.placeholder}
             onChange={(e) => {
