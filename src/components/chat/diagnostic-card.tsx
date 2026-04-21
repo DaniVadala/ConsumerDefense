@@ -1,310 +1,426 @@
-'use client';
+﻿'use client';
 
-import { Scale, Info, Clock, AlertTriangle, ShieldCheck, ChevronRight, TrendingUp, Zap } from 'lucide-react';
-import type { DiagnosticoData } from '@/lib/chatbot/state';
+import { Scale, ChevronRight, FileText, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import type { DiagnosisData } from '@/lib/chatbot/types';
 import { trackWhatsAppClick } from '@/lib/analytics';
-import { useLocale } from '@/lib/i18n/context';
+import type { Lang } from '@/lib/i18n/translations';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5493515284074';
 
-const ESCENARIOS_ES = [
-  {
-    via: 'Reclamo administrativo',
-    descripcion: 'Ventanilla Única Federal (online y gratuito) o, en Córdoba, Dirección Provincial de Defensa del Consumidor / OMIC Municipal.',
-    url: 'https://www.argentina.gob.ar/servicio/iniciar-un-reclamo-ante-defensa-del-consumidor',
-  },
-  {
-    via: 'Mediación / conciliación',
-    descripcion: 'Sistema COPREC u otros mecanismos de conciliación previa. Un tercero neutral facilita un acuerdo.',
-    url: null,
-  },
-  {
-    via: 'Vía judicial',
-    descripcion: 'Acción legal con abogado matriculado. Aplicable si las vías previas no resolvieron.',
-    url: null,
-  },
-];
+// ---------------------------------------------------------------------------
+// i18n labels
+// ---------------------------------------------------------------------------
 
-const ESCENARIOS_EN = [
-  {
-    via: 'Administrative complaint',
-    descripcion: 'Federal Single Window (online and free) or, in Córdoba, the Provincial Consumer Protection Agency / Municipal OMIC.',
-    url: 'https://www.argentina.gob.ar/servicio/iniciar-un-reclamo-ante-defensa-del-consumidor',
+const UI = {
+  es: {
+    badge: 'Análisis Preliminar',
+    caseInfo: 'Información del caso',
+    company: 'Empresa / Proveedor',
+    area: 'Área del problema',
+    description: 'Descripción',
+    date: 'Fecha de los hechos',
+    amount: 'Monto involucrado',
+    priorComplaint: 'Reclamos previos',
+    documentation: 'Documentación mencionada',
+    // Nivel de prueba section
+    proofTitle: 'Nivel de prueba',
+    proofCompleteLabel: 'Completa',
+    proofPartialLabel: 'Parcial',
+    proofLawyerNote: 'Te recomendamos consultar con un abogado para una evaluación precisa de tu caso.',
+    // Plazos section
+    plazosTitle: 'Plazos',
+    plazosVigente: 'No prescripto',
+    plazosProximo: 'Próximo a vencer',
+    plazosPrescripto: 'Prescripto',
+    plazosNoPrecisado: 'Aún no precisado por el cliente',
+    plazosOrientativo: 'Este cálculo es orientativo. Confirmá los plazos con un abogado antes de actuar.',
+    plazosVencimiento: 'Vencimiento estimado',
+    plazosBaseLegal: 'Base legal',
+    // Rest
+    recommendedDocs: 'Documentación que conviene reunir',
+    regulations: 'Normativa que podría aplicar',
+    nextSteps: 'Pasos siguientes',
+    damageTypes: 'Tipos de daños posibles',
+    damageNote:
+      'Un abogado matriculado puede evaluar y cuantificar los daños que correspondan según el caso.',
+    disclaimer: '⚠️ Esta orientación es automatizada y no constituye asesoramiento legal profesional. Consultá con un abogado antes de actuar.',
+    waButton: 'Consultar con un abogado (sin cargo inicial)',
+    waMsg: (empresa: string, desc: string) =>
+      `Hola! Quiero consultar mi caso de defensa del consumidor. Empresa: ${empresa}. Problema: ${desc}. Me lo generó DefensaYa.`,
   },
-  {
-    via: 'Mediation / conciliation',
-    descripcion: 'COPREC system or other pre-litigation conciliation mechanisms. A neutral third party facilitates an agreement.',
-    url: null,
+  en: {
+    badge: 'Preliminary Analysis',
+    caseInfo: 'Case Information',
+    company: 'Company / Provider',
+    area: 'Issue Area',
+    description: 'Description',
+    date: 'Incident Date',
+    amount: 'Amount Involved',
+    priorComplaint: 'Prior Complaints',
+    documentation: 'Documentation Mentioned',
+    // Proof level section
+    proofTitle: 'Proof Level',
+    proofCompleteLabel: 'Complete',
+    proofPartialLabel: 'Partial',
+    proofLawyerNote: 'We recommend consulting a licensed attorney for a precise evaluation of your case.',
+    // Deadlines section
+    plazosTitle: 'Deadlines',
+    plazosVigente: 'Not statute-barred',
+    plazosProximo: 'Expiring soon',
+    plazosPrescripto: 'Statute-barred',
+    plazosNoPrecisado: 'Not yet specified by client',
+    plazosOrientativo: 'This calculation is indicative only. Confirm deadlines with a lawyer before taking action.',
+    plazosVencimiento: 'Estimated expiry',
+    plazosBaseLegal: 'Legal basis',
+    // Rest
+    recommendedDocs: 'Recommended Documentation',
+    regulations: 'Potentially Applicable Regulations',
+    nextSteps: 'Next Steps',
+    damageTypes: 'Possible Damage Types',
+    damageNote:
+      'A licensed attorney can assess and quantify applicable damages based on the specifics of your case.',
+    disclaimer: '⚠️ This guidance is automated and does not constitute professional legal advice. Consult a licensed attorney before taking action.',
+    waButton: 'Consult a lawyer (no upfront fee)',
+    waMsg: (empresa: string, desc: string) =>
+      `Hi! I'd like to consult about my consumer rights case. Company: ${empresa}. Issue: ${desc}. Generated by DefensaYa.`,
   },
-  {
-    via: 'Legal action',
-    descripcion: 'Formal legal action with a licensed attorney. Applicable if prior channels did not resolve the issue.',
-    url: null,
-  },
-];
-
-const UI_ES = {
-  preliminaryBadge: 'Análisis preliminar',
-  situacion: 'Situación informada',
-  hecho: 'Hecho:',
-  monto: 'Monto:',
-  reclamoPrevio: 'Reclamo previo:',
-  reclamoSi: (detalle?: string) => `Sí${detalle ? ` — ${detalle}` : ''}`,
-  reclamoNo: 'No reclamó aún (recomendable antes de escalar)',
-  refinarTitulo: 'Para refinar el análisis faltaría:',
-  refinarFooter: 'El abogado puede completar esta info en la conversación inicial.',
-  docEstado: 'Estado de tu documentación',
-  docSugerimos: 'Te sugerimos reunir:',
-  normativa: 'Normativa que podría aplicar',
-  vias: 'Vías de resolución (información general)',
-  encuadre: 'Para encuadrar tu caso',
-  aviso: '⚠️ Aviso importante:',
-  proximoPaso: '¿Qué pasa al tocar el botón?',
-  danos: 'Un abogado matriculado puede determinar y cuantificar los daños que correspondan: económico, moral y/o punitivo.',
-  ctaUrgente: 'Hablar con un abogado YA (sin cargo inicial)',
-  ctaNormal: 'Consultar con un abogado (sin cargo inicial)',
-  urgenciaCritica: 'Situación crítica: conviene actuar sin demora.',
-  urgenciaAlta: 'Situación con urgencia temporal o económica.',
-  waMsg: (casoId: string, problema: string, proveedor: string, esPreliminar?: boolean) =>
-    `Hola! Quisiera que un abogado evalúe mi caso (${casoId}). ${problema}. Proveedor: ${proveedor}.${esPreliminar ? ' (Análisis preliminar — falta completar algunos datos.)' : ''}`,
 };
 
-const UI_EN = {
-  preliminaryBadge: 'Preliminary analysis',
-  situacion: 'Reported situation',
-  hecho: 'Date/time:',
-  monto: 'Amount:',
-  reclamoPrevio: 'Prior complaint:',
-  reclamoSi: (detalle?: string) => `Yes${detalle ? ` — ${detalle}` : ''}`,
-  reclamoNo: 'No prior complaint (recommended before escalating)',
-  refinarTitulo: 'To refine the analysis, the following info is still needed:',
-  refinarFooter: 'The lawyer can gather this info during the initial conversation.',
-  docEstado: 'Documentation status',
-  docSugerimos: 'We suggest gathering:',
-  normativa: 'Potentially applicable regulations',
-  vias: 'Resolution paths (general information)',
-  encuadre: 'Context for your case',
-  aviso: '⚠️ Important notice:',
-  proximoPaso: 'What happens when you tap the button?',
-  danos: 'A licensed attorney can determine and quantify applicable damages: economic, moral and/or punitive.',
-  ctaUrgente: 'Talk to a lawyer NOW (no upfront fee)',
-  ctaNormal: 'Consult a lawyer (no upfront fee)',
-  urgenciaCritica: 'Critical situation: it is advisable to act without delay.',
-  urgenciaAlta: 'Time-sensitive or financially urgent situation.',
-  waMsg: (casoId: string, problema: string, proveedor: string, esPreliminar?: boolean) =>
-    `Hello! I'd like a lawyer to review my case (${casoId}). ${problema}. Provider: ${proveedor}.${esPreliminar ? ' (Preliminary analysis — some data still missing.)' : ''}`,
-};
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
-export function DiagnosticCard({ data }: { data: DiagnosticoData }) {
-  const { lang } = useLocale();
-  const ui = lang === 'en' ? UI_EN : UI_ES;
-  const escenarios = lang === 'en' ? ESCENARIOS_EN : ESCENARIOS_ES;
-
-  const waMessage = encodeURIComponent(ui.waMsg(data.casoId, data.problemaPrincipal, data.proveedor, data.esPreliminar));
-  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`;
-
-  const esUrgente = data.nivelUrgencia === 'critica' || data.nivelUrgencia === 'alta';
-
+/** Render text that may contain a URL as a <span> with an <a> for the URL part */
+function TextWithLink({ text }: { text: string }) {
+  const urlMatch = text.match(/(https?:\/\/[^\s)]+)/);
+  if (!urlMatch) return <span>{text}</span>;
+  const url = urlMatch[1];
+  const idx = text.indexOf(url);
   return (
-    <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm" style={{ maxWidth: '100%' }}>
-      {/* Banner de urgencia */}
-      {esUrgente && (
-        <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
-          <Zap size={14} className="text-amber-700 flex-shrink-0" />
-          <span className="text-xs font-medium text-amber-900">
-            {data.nivelUrgencia === 'critica' ? ui.urgenciaCritica : ui.urgenciaAlta}
+    <>
+      {idx > 0 && <span>{text.slice(0, idx)}</span>}
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline text-emerald-700 hover:text-emerald-800 break-all"
+      >
+        {url}
+      </a>
+      {idx + url.length < text.length && <span>{text.slice(idx + url.length)}</span>}
+    </>
+  );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h4 className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--slate-9)' }}>
+      {children}
+    </h4>
+  );
+}
+
+type AssessmentVariant = 'success' | 'warning' | 'danger' | 'muted';
+
+const variantStyles: Record<AssessmentVariant, { bg: string; border: string; color: string; badgeBg: string; badgeColor: string }> = {
+  success: {
+    bg: 'var(--green-2, #f0fdf4)',
+    border: 'var(--green-6, #86efac)',
+    color: 'var(--green-11, #15803d)',
+    badgeBg: 'var(--green-4, #bbf7d0)',
+    badgeColor: 'var(--green-11, #15803d)',
+  },
+  warning: {
+    bg: 'var(--amber-2, #fffbeb)',
+    border: 'var(--amber-6, #fcd34d)',
+    color: 'var(--amber-11, #92400e)',
+    badgeBg: 'var(--amber-4, #fde68a)',
+    badgeColor: 'var(--amber-11, #92400e)',
+  },
+  danger: {
+    bg: 'var(--red-2, #fef2f2)',
+    border: 'var(--red-6, #fca5a5)',
+    color: 'var(--red-11, #991b1b)',
+    badgeBg: 'var(--red-4, #fecaca)',
+    badgeColor: 'var(--red-11, #991b1b)',
+  },
+  muted: {
+    bg: 'var(--slate-2, #f8fafc)',
+    border: 'var(--slate-5, #cbd5e1)',
+    color: 'var(--slate-11, #475569)',
+    badgeBg: 'var(--slate-4, #e2e8f0)',
+    badgeColor: 'var(--slate-11, #475569)',
+  },
+};
+
+function AssessmentSection({
+  title,
+  badge,
+  icon,
+  variant,
+  children,
+}: {
+  title: string;
+  badge: string;
+  icon: React.ReactNode;
+  variant: AssessmentVariant;
+  children?: React.ReactNode;
+}) {
+  const s = variantStyles[variant];
+  return (
+    <div>
+      <SectionTitle>{title}</SectionTitle>
+      <div
+        className="rounded-xl p-3 space-y-2"
+        style={{ background: s.bg, border: `1px solid ${s.border}` }}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
+            style={{ background: s.badgeBg, color: s.badgeColor }}
+          >
+            {icon}
+            {badge}
           </span>
         </div>
-      )}
-
-      {/* Header */}
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        <span className="text-xs font-mono px-2 py-0.5 rounded bg-gray-100 text-gray-600">
-          {data.casoId}
-        </span>
-        <span
-          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-          style={{ background: 'var(--accent-2)', color: 'var(--accent-11)' }}
-        >
-          {data.area}
-        </span>
-        <span className="text-xs text-gray-500">{data.proveedor}</span>
-        {data.esPreliminar && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            {ui.preliminaryBadge}
-          </span>
-        )}
-      </div>
-
-      {/* Situación */}
-      <div className="mb-3">
-        <p className="text-sm font-bold mb-1">{ui.situacion}</p>
-        <p className="text-sm text-gray-600">{data.problemaPrincipal}</p>
-      </div>
-
-      {/* Detalles */}
-      <div className="mb-3 flex flex-col gap-1.5 text-xs">
-        <div className="flex items-center gap-1.5 text-gray-600">
-          <Clock size={12} className="flex-shrink-0" />
-          <span><strong>{ui.hecho}</strong> {data.tiempo}</span>
-        </div>
-        {data.monto && (
-          <div className="flex items-center gap-1.5 text-gray-600">
-            <span className="flex-shrink-0">💰</span>
-            <span><strong>{ui.monto}</strong> {data.monto}</span>
+        {children && (
+          <div className="space-y-1" style={{ color: s.color }}>
+            {children}
           </div>
         )}
-        <div className="flex items-start gap-1.5 text-gray-600">
-          <AlertTriangle size={12} className="flex-shrink-0 mt-0.5" />
-          <span>
-            <strong>{ui.reclamoPrevio}</strong>{' '}
-            {data.reclamoPrevio.realizado
-              ? ui.reclamoSi(data.detalleReclamo)
-              : ui.reclamoNo}
-          </span>
-        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div className="flex flex-col gap-0.5 py-1.5 border-b last:border-0" style={{ borderColor: 'var(--slate-3)' }}>
+      <span className="text-[11px] font-medium uppercase tracking-wide" style={{ color: 'var(--slate-9)' }}>
+        {label}
+      </span>
+      <span className="text-sm" style={{ color: 'var(--slate-12)' }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+export function DiagnosticCard({ data, lang }: { data: DiagnosisData; lang: Lang }) {
+  const ui = UI[lang] ?? UI.es;
+
+  const isComplete =
+    data.nivel_prueba === 'total' || data.nivel_prueba === 'complete' || data.nivel_prueba === 'suficiente';
+
+  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    ui.waMsg(data.empresa, data.descripcion.slice(0, 150))
+  )}`;
+
+  // Plazos helpers
+  const plazos = data.plazos ?? null;
+  const plazosVariant: AssessmentVariant =
+    !plazos || plazos.estado === 'no_precisado'
+      ? 'muted'
+      : plazos.estado === 'vigente'
+      ? 'success'
+      : plazos.estado === 'proximo_a_vencer'
+      ? 'warning'
+      : 'danger';
+  const plazosBadge =
+    !plazos || plazos.estado === 'no_precisado'
+      ? ui.plazosNoPrecisado
+      : plazos.estado === 'vigente'
+      ? ui.plazosVigente
+      : plazos.estado === 'proximo_a_vencer'
+      ? ui.plazosProximo
+      : ui.plazosPrescripto;
+  const plazosIcon =
+    plazosVariant === 'success' ? <CheckCircle2 className="w-3 h-3" /> :
+    plazosVariant === 'danger'  ? <AlertTriangle className="w-3 h-3" /> :
+    <Clock className="w-3 h-3" />;
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden shadow-md"
+      style={{ border: '1.5px solid var(--slate-4)', background: 'white' }}
+    >
+      {/* Card header — no proof badge here */}
+      <div
+        className="flex items-center gap-2 px-4 py-3"
+        style={{ background: 'linear-gradient(135deg, var(--accent-9), var(--teal-9))' }}
+      >
+        <Scale className="w-4 h-4 text-white" />
+        <span className="text-sm font-bold text-white">{ui.badge}</span>
       </div>
 
-      {/* Si es preliminar: qué falta */}
-      {data.esPreliminar && data.camposFaltantes && data.camposFaltantes.length > 0 && (
-        <div className="mb-3 p-2 rounded-lg bg-blue-50 border border-blue-100">
-          <p className="text-xs font-semibold text-blue-900 mb-1">{ui.refinarTitulo}</p>
-          <ul className="text-xs text-blue-800 list-disc pl-4">
-            {data.camposFaltantes.map((c, i) => <li key={i}>{c}</li>)}
-          </ul>
-          <p className="text-[11px] text-blue-700 mt-1">{ui.refinarFooter}</p>
+      <div className="px-4 py-4 space-y-5">
+        {/* ── Case info ── */}
+        <div>
+          <SectionTitle>{ui.caseInfo}</SectionTitle>
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--slate-3)' }}>
+            <div className="divide-y divide-gray-100">
+              <InfoRow label={ui.company} value={data.empresa} />
+              <InfoRow label={ui.area} value={data.area} />
+              <InfoRow label={ui.description} value={data.descripcion} />
+              <InfoRow label={ui.date} value={data.fecha_hechos} />
+              {data.monto && <InfoRow label={ui.amount} value={data.monto} />}
+              <InfoRow label={ui.priorComplaint} value={data.reclamo_previo} />
+              <InfoRow label={ui.documentation} value={data.documentacion_disponible} />
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Fortaleza documental */}
-      <div className="mb-3">
-        <div className="flex items-center gap-1 mb-1">
-          <ShieldCheck size={14} style={{ color: 'var(--accent-9)' }} />
-          <span className="text-sm font-bold">{ui.docEstado}</span>
-        </div>
-        {data.fortalezaDocumental && <p className="text-xs text-gray-600">{data.fortalezaDocumental}</p>}
-        {data.documentacionSugerida.length > 0 && (
-          <div className="mt-1">
-            <p className="text-xs text-gray-500 mb-0.5">{ui.docSugerimos}</p>
-            <ul className="text-xs text-gray-500 list-disc pl-4">
-              {data.documentacionSugerida.map((doc, i) => (
-                <li key={i}>{doc}</li>
+        {/* ── Nivel de prueba ── */}
+        <AssessmentSection
+          title={ui.proofTitle}
+          badge={isComplete ? ui.proofCompleteLabel : ui.proofPartialLabel}
+          icon={isComplete ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+          variant={isComplete ? 'success' : 'warning'}
+        >
+          {data.nivel_prueba_explicacion && (
+            <p className="text-sm leading-relaxed">{data.nivel_prueba_explicacion}</p>
+          )}
+          <p className="text-xs opacity-80">{ui.proofLawyerNote}</p>
+        </AssessmentSection>
+
+        {/* ── Plazos ── */}
+        <AssessmentSection
+          title={ui.plazosTitle}
+          badge={plazosBadge}
+          icon={plazosIcon}
+          variant={plazosVariant}
+        >
+          {plazos && plazos.estado !== 'no_precisado' && (
+            <>
+              {plazos.explicacion && (
+                <p className="text-sm leading-relaxed">{plazos.explicacion}</p>
+              )}
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs">
+                {plazos.vencimiento && (
+                  <span><strong>{ui.plazosVencimiento}:</strong> {plazos.vencimiento}</span>
+                )}
+                {plazos.base_legal && (
+                  <span><strong>{ui.plazosBaseLegal}:</strong> {plazos.base_legal}</span>
+                )}
+              </div>
+            </>
+          )}
+          <p className="text-xs opacity-80">{ui.plazosOrientativo}</p>
+        </AssessmentSection>
+
+        {/* ── Recommended docs ── */}
+        {data.documentacion_recomendada?.length > 0 && (
+          <div>
+            <SectionTitle>
+              <FileText className="w-3 h-3 inline mr-1" />
+              {ui.recommendedDocs}
+            </SectionTitle>
+            <ul className="space-y-1">
+              {data.documentacion_recomendada.map((doc, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm" style={{ color: 'var(--slate-11)' }}>
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--accent-9)' }} />
+                  {doc}
+                </li>
               ))}
             </ul>
           </div>
         )}
-      </div>
 
-      {/* Legislación */}
-      <div className="mb-3">
-        <div className="flex items-center gap-1 mb-1">
-          <Scale size={14} style={{ color: 'var(--accent-9)' }} />
-          <span className="text-sm font-bold">{ui.normativa}</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          {data.legislacionAplicable.map((ley, i) => (
-            <span key={i} className="text-xs text-gray-500">• {ley}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* Vías de resolución */}
-      <div className="mb-3">
-        <div className="flex items-center gap-1 mb-2">
-          <Info size={13} style={{ color: 'var(--accent-9)' }} />
-          <span className="text-sm font-bold">{ui.vias}</span>
-        </div>
-        <div className="flex flex-col gap-2">
-          {escenarios.map((escenario, i) => (
-            <div key={i} className="flex gap-2 items-start">
-              <span
-                style={{
-                  background: 'var(--accent-9)',
-                  color: 'white',
-                  borderRadius: '9999px',
-                  width: '16px',
-                  height: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  marginTop: '2px',
-                }}
-              >
-                {i + 1}
-              </span>
-              <div>
-                {escenario.url ? (
-                  <a href={escenario.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-blue-500 underline hover:text-blue-700">
-                    {escenario.via}
-                  </a>
-                ) : (
-                  <span className="text-xs font-medium text-gray-700">{escenario.via}</span>
-                )}
-                <p className="text-xs text-gray-500">{escenario.descripcion}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Stats de encuadre */}
-      {data.stats && data.stats.length > 0 && (
-        <div className="mb-3 p-2 rounded-lg bg-emerald-50 border border-emerald-100">
-          <div className="flex items-center gap-1 mb-1">
-            <TrendingUp size={13} className="text-emerald-700" />
-            <span className="text-xs font-bold text-emerald-900">{ui.encuadre}</span>
+        {/* ── Regulations ── */}
+        {data.normativa?.length > 0 && (
+          <div>
+            <SectionTitle>{ui.regulations}</SectionTitle>
+            <ul className="space-y-1">
+              {data.normativa.map((ley, i) => (
+                <li key={i} className="text-sm" style={{ color: 'var(--slate-11)' }}>
+                  <span className="font-medium" style={{ color: 'var(--accent-9)' }}>›</span> {ley}
+                </li>
+              ))}
+            </ul>
           </div>
-          {data.stats.map((s, i) => (
-            <p key={i} className="text-xs text-emerald-800 mb-0.5">
-              • {s.frase} <span className="text-[10px] text-emerald-700">({s.fuente}, {s.anio})</span>
+        )}
+
+        {/* ── Next steps ── */}
+        {data.pasos_siguientes?.length > 0 && (
+          <div>
+            <SectionTitle>{ui.nextSteps}</SectionTitle>
+            <ol className="space-y-2">
+              {data.pasos_siguientes.map((paso, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span
+                    className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white mt-0.5"
+                    style={{ background: 'var(--accent-9)' }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="text-sm leading-relaxed" style={{ color: 'var(--slate-12)' }}>
+                    <TextWithLink text={paso} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {/* ── Damage types ── */}
+        {data.tipos_danos?.length > 0 && (
+          <div>
+            <SectionTitle>{ui.damageTypes}</SectionTitle>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {data.tipos_danos.map((d, i) => (
+                <span
+                  key={i}
+                  className="text-xs font-medium px-2.5 py-1 rounded-full"
+                  style={{
+                    background: 'var(--accent-2)',
+                    color: 'var(--accent-11)',
+                    border: '1px solid var(--accent-4)',
+                  }}
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs" style={{ color: 'var(--slate-9)' }}>
+              {ui.damageNote}
             </p>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Disclaimer */}
-      <div
-        className="mb-3 p-2"
-        style={{
-          background: 'var(--amber-2)',
-          border: '1px solid var(--amber-5)',
-          borderRadius: 'var(--radius-2)',
-        }}
-      >
-        <span className="text-xs" style={{ color: 'var(--amber-11)', lineHeight: 1.45 }}>
-          <strong>{ui.aviso}</strong> {data.disclaimer}
-        </span>
+        {/* ── Disclaimer ── */}
+        <p
+          className="text-xs rounded-lg px-3 py-2.5 leading-relaxed"
+          style={{
+            background: 'var(--amber-2, #fffbeb)',
+            color: 'var(--amber-11, #92400e)',
+            border: '1px solid var(--amber-4, #fde68a)',
+          }}
+        >
+          {ui.disclaimer}
+        </p>
+
+        {/* ── WhatsApp CTA ── */}
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackWhatsAppClick('diagnostic_card')}
+          className="flex items-center justify-center gap-2 w-full py-3.5 px-5 text-white font-semibold text-sm rounded-xl no-underline transition-opacity hover:opacity-90"
+          style={{ background: '#25D366' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+          </svg>
+          <span>{ui.waButton}</span>
+          <ChevronRight className="w-4 h-4 ml-auto opacity-70" />
+        </a>
       </div>
-
-      {/* Próximo paso */}
-      {data.proximoPaso && (
-        <div className="mb-2 text-xs text-gray-500 leading-snug">
-          <strong className="text-gray-700">{ui.proximoPaso}</strong><br />
-          {data.proximoPaso}
-        </div>
-      )}
-
-      {/* Daños */}
-      <p className="text-xs text-gray-500 leading-snug mb-2">
-        {ui.danos}
-      </p>
-
-      {/* CTA */}
-      <a
-        href={waUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => trackWhatsAppClick('diagnostic_card', data.casoId)}
-        className={`flex items-center justify-center gap-2 w-full py-3 px-5 text-white font-semibold text-[0.9375rem] rounded-xl no-underline transition-colors ${
-          esUrgente ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'
-        }`}
-      >
-        {esUrgente ? ui.ctaUrgente : ui.ctaNormal}
-        <ChevronRight size={16} />
-      </a>
     </div>
   );
 }
+
