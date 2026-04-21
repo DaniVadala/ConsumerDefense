@@ -538,19 +538,32 @@ export async function POST(req: NextRequest) {
     let groqRes = await callGroq(activeModel);
 
     if (groqRes.status === 429) {
-      // Read body once to classify: TPD (daily limit) vs TPM (burst limit).
+      // Read body once to classify the rate-limit type and extract required wait.
       const errBody = await groqRes.json().catch(() => null);
-      const isTPD = String(errBody?.error?.message ?? '').includes('tokens per day');
-      if (isTPD) {
-        // Daily quota exhausted on primary model — switch to fallback immediately.
+      const errMsg = String(errBody?.error?.message ?? '');
+
+      // Parse "Please try again in X.XXs" or "in Xms" from the error message.
+      const waitSecMatch = errMsg.match(/try again in (\d+(?:\.\d+)?)s/);
+      const waitMsMatch  = errMsg.match(/try again in (\d+)ms/);
+      const requiredWaitMs = waitSecMatch
+        ? Math.ceil(parseFloat(waitSecMatch[1]) * 1000)
+        : waitMsMatch
+          ? parseInt(waitMsMatch[1], 10)
+          : 2000; // default if we can't parse
+
+      const isTPD = errMsg.includes('tokens per day');
+
+      if (isTPD || requiredWaitMs > 5000) {
+        // Daily limit OR required wait is too long (>5s) → switch to fallback model immediately.
         activeModel = FALLBACK_MODEL;
         groqRes = await callGroq(activeModel);
       } else {
-        // TPM burst — wait and retry with same model (two attempts + backoff).
-        await new Promise((r) => setTimeout(r, 1500));
+        // TPM burst with short required wait — pause exactly the required time then retry.
+        await new Promise((r) => setTimeout(r, requiredWaitMs + 300)); // +300ms buffer
         groqRes = await callGroq(activeModel);
         if (groqRes.status === 429) {
-          await new Promise((r) => setTimeout(r, 3000));
+          // Second 429 — fall back to the smaller model rather than making user wait more.
+          activeModel = FALLBACK_MODEL;
           groqRes = await callGroq(activeModel);
         }
       }
