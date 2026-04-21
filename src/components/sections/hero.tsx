@@ -53,13 +53,20 @@ export function Hero() {
   const handleCalOpen = () => { trackCalModalOpen('hero'); openCalModal(); };
   const handleCalPreload = () => { trackCalPreload('hero'); preloadCal(); };
 
-  const handleCtaClick = () => {
+  const handleCtaClickDesktop = () => {
     if (conversationEnded) {
       resetConversation();
       setTimeout(focusChatInput, 50);
     } else {
       focusChatInput();
     }
+  };
+
+  const handleCtaClickMobile = () => {
+    if (conversationEnded) {
+      resetConversation();
+    }
+    document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -152,7 +159,7 @@ export function Hero() {
           <div className="flex flex-col items-center gap-1.5">
             {chatAvailable ? (
               <button
-                onClick={handleCtaClick}
+                onClick={handleCtaClickMobile}
                 className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
               >
                 {conversationEnded ? t.hero.ctaButtonReset : t.hero.ctaButton}
@@ -242,7 +249,7 @@ export function Hero() {
               <div className="flex flex-col items-center gap-1 w-full max-w-sm -mt-8 relative z-10">
                   {chatAvailable ? (
                     <button
-                      onClick={handleCtaClick}
+                      onClick={handleCtaClickDesktop}
                       className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
                     >
                       {conversationEnded ? t.hero.ctaButtonReset : t.hero.ctaButton}
