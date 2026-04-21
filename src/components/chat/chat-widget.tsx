@@ -11,6 +11,7 @@ import { IntakeQuestion } from './intake-question';
 import { FallbackWhatsApp } from './fallback-whatsapp';
 import { UrgenciaWidget } from './urgencia-widget';
 import { useLocale } from '@/lib/i18n/context';
+import { useChatAvailability } from '@/lib/chat-availability-context';
 import {
   trackChatMessageSent,
   trackChatSuggestionClick,
@@ -87,6 +88,7 @@ export function ChatWidget() {
   const [formOpen, setFormOpen] = useState(false);
 
   const { openCalModal } = useCalModal();
+  const { setConversationEnded } = useChatAvailability();
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -222,6 +224,10 @@ export function ChatWidget() {
   const isConversationEnded = lastBotMsg?.uiComponents?.some(
     c => c.type === 'diagnostico' || c.type === 'whatsappCTA' || c.type === 'fallbackWhatsApp' || c.type === 'urgencia'
   );
+
+  useEffect(() => {
+    if (isConversationEnded) setConversationEnded(true);
+  }, [isConversationEnded, setConversationEnded]);
 
   return (
     <div

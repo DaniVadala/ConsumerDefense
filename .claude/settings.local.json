@@ -5,7 +5,22 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(ls C:\\\\Projects\\\\reclamobot\\\\.env*)",
+      "Bash(curl -s -X POST http://localhost:3000/api/chat -H 'Content-Type: application/json' -d '{\"messages\":[{\"id\":\"1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Hola\"}]}]}')",
+      "Bash(curl -s http://localhost:3000 -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/chat -H 'Content-Type: application/json' -d '{\"messages\":[{\"id\":\"1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Hola, tuve un problema con mi banco\"}]}]}')",
+      "Bash(curl:*)",
+      "Bash(grep -r \"convertToModelMessages\" C:/Projects/reclamobot/node_modules/ai/dist/*.js)",
+      "Bash(taskkill /PID 17476 /F)",
+      "Read(//tmp/**)",
+      "Bash(grep -v \"^$\")",
+      "Bash(npm install:*)",
+      "Bash(python -m json.tool)",
+      "Bash(sed:*)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node:*)",
+      "Bash(git rm *)"
     ]
   }
 }

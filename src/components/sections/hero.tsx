@@ -46,12 +46,21 @@ function focusChatInput() {
 export function Hero() {
   const { t } = useLocale();
   const { openCalModal, preloadCal } = useCalModal();
-  const { chatAvailable } = useChatAvailability();
+  const { chatAvailable, conversationEnded, resetKey, resetConversation } = useChatAvailability();
 
   const waUrl = 'https://wa.me/5493515284074?text=' + encodeURIComponent('Hola, necesito ayuda con un reclamo de consumidor');
 
   const handleCalOpen = () => { trackCalModalOpen('hero'); openCalModal(); };
   const handleCalPreload = () => { trackCalPreload('hero'); preloadCal(); };
+
+  const handleCtaClick = () => {
+    if (conversationEnded) {
+      resetConversation();
+      setTimeout(focusChatInput, 50);
+    } else {
+      focusChatInput();
+    }
+  };
 
   return (
     <section
@@ -119,7 +128,7 @@ export function Hero() {
               </div>
             )}
             <div className="h-[480px] rounded-2xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
-              <ChatWidget />
+              <ChatWidget key={resetKey} />
             </div>
           </div>
 
@@ -143,10 +152,10 @@ export function Hero() {
           <div className="flex flex-col items-center gap-1.5">
             {chatAvailable ? (
               <button
-                onClick={focusChatInput}
+                onClick={handleCtaClick}
                 className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
               >
-                {t.hero.ctaButton}
+                {conversationEnded ? t.hero.ctaButtonReset : t.hero.ctaButton}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
               </button>
             ) : (
@@ -233,10 +242,10 @@ export function Hero() {
               <div className="flex flex-col items-center gap-1 w-full max-w-sm -mt-8 relative z-10">
                   {chatAvailable ? (
                     <button
-                      onClick={focusChatInput}
+                      onClick={handleCtaClick}
                       className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
                     >
-                      {t.hero.ctaButton}
+                      {conversationEnded ? t.hero.ctaButtonReset : t.hero.ctaButton}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </button>
                   ) : (
@@ -298,7 +307,7 @@ export function Hero() {
                   </div>
                 )}
                 <div className="relative flex-1 overflow-hidden rounded-2xl min-h-0 shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
-                  <ChatWidget />
+                  <ChatWidget key={resetKey} />
                 </div>
               </div>
             </div>

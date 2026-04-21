@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: '¿Tenés un reclamo viable como consumidor? — DefensaYa',
   description:
-    '¿Te cobraron de más? ¿No te responden? DefensaYa te ayuda a entender tus derechos como consumidor argentino. Diagnóstico gratuito con IA.',
+    '¿Te cobraron de más? ¿No te responden? DefensaYa te ayuda a hacer valer tus derechos como consumidor argentino. Análisis gratuito con IA.',
   keywords: [
     'reclamo consumidor',
     'defensa del consumidor',

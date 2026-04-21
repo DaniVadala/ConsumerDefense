@@ -44,14 +44,14 @@ const ESCENARIOS_EN = [
 ];
 
 const UI_ES = {
-  preliminaryBadge: 'Diagnóstico preliminar',
+  preliminaryBadge: 'Análisis preliminar',
   situacion: 'Situación informada',
   hecho: 'Hecho:',
   monto: 'Monto:',
   reclamoPrevio: 'Reclamo previo:',
   reclamoSi: (detalle?: string) => `Sí${detalle ? ` — ${detalle}` : ''}`,
   reclamoNo: 'No reclamó aún (recomendable antes de escalar)',
-  refinarTitulo: 'Para refinar el diagnóstico faltaría:',
+  refinarTitulo: 'Para refinar el análisis faltaría:',
   refinarFooter: 'El abogado puede completar esta info en la conversación inicial.',
   docEstado: 'Estado de tu documentación',
   docSugerimos: 'Te sugerimos reunir:',
@@ -65,18 +65,18 @@ const UI_ES = {
   urgenciaCritica: 'Situación crítica: conviene actuar sin demora.',
   urgenciaAlta: 'Situación con urgencia temporal o económica.',
   waMsg: (casoId: string, problema: string, proveedor: string, esPreliminar?: boolean) =>
-    `Hola! Quisiera que un abogado evalúe mi caso (${casoId}). ${problema}. Proveedor: ${proveedor}.${esPreliminar ? ' (Diagnóstico preliminar — falta completar algunos datos.)' : ''}`,
+    `Hola! Quisiera que un abogado evalúe mi caso (${casoId}). ${problema}. Proveedor: ${proveedor}.${esPreliminar ? ' (Análisis preliminar — falta completar algunos datos.)' : ''}`,
 };
 
 const UI_EN = {
-  preliminaryBadge: 'Preliminary diagnosis',
+  preliminaryBadge: 'Preliminary analysis',
   situacion: 'Reported situation',
   hecho: 'Date/time:',
   monto: 'Amount:',
   reclamoPrevio: 'Prior complaint:',
   reclamoSi: (detalle?: string) => `Yes${detalle ? ` — ${detalle}` : ''}`,
   reclamoNo: 'No prior complaint (recommended before escalating)',
-  refinarTitulo: 'To refine the diagnosis, the following info is still needed:',
+  refinarTitulo: 'To refine the analysis, the following info is still needed:',
   refinarFooter: 'The lawyer can gather this info during the initial conversation.',
   docEstado: 'Documentation status',
   docSugerimos: 'We suggest gathering:',
@@ -90,7 +90,7 @@ const UI_EN = {
   urgenciaCritica: 'Critical situation: it is advisable to act without delay.',
   urgenciaAlta: 'Time-sensitive or financially urgent situation.',
   waMsg: (casoId: string, problema: string, proveedor: string, esPreliminar?: boolean) =>
-    `Hello! I'd like a lawyer to review my case (${casoId}). ${problema}. Provider: ${proveedor}.${esPreliminar ? ' (Preliminary diagnosis — some data still missing.)' : ''}`,
+    `Hello! I'd like a lawyer to review my case (${casoId}). ${problema}. Provider: ${proveedor}.${esPreliminar ? ' (Preliminary analysis — some data still missing.)' : ''}`,
 };
 
 export function DiagnosticCard({ data }: { data: DiagnosticoData }) {
