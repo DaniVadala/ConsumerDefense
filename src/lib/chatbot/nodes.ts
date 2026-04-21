@@ -209,6 +209,27 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
 
   // 1c. IA GUARD (Para cualquier mensaje que no sea un saludo corto muy obvio)
   if (pre.tipoMensajeCorto === 'none' || pre.esAbuso || pre.esFueraConsumoQuick) {
+    // Chequear hint rápido primero — si hay área obvia, saltear LLM guard
+    const areaHint = fastAreaHint(pre.textoSaneado);
+    if (areaHint && !pre.esAbuso) {
+      const newCaptured = {
+        ...state.captured,
+        area: areaHint,
+        areaConfirmada: true,
+        problemaTextoLibre: pre.textoSaneado,
+      };
+      const firstQ = getNextQuestion(areaHint, 0, capturedToRecord(newCaptured), state.locale);
+      const pasoInfo = computePasoInfo(areaHint, 0, capturedToRecord(newCaptured));
+      return {
+        currentNode: 'intake',
+        captured: newCaptured,
+        intakeStep: 0,
+        responseText: getEmpatiaApertura(areaHint, pre.textoSaneado, state.locale),
+        uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, placeholder: firstQ.placeholder, ...pasoInfo }] : [],
+        turnCount: state.turnCount + 1,
+      };
+    }
+
     const extracted = await extractInfoFromText(pre.textoSaneado, state.locale);
 
     if (extracted.esInadecuado || pre.esAbuso) {
@@ -220,18 +241,9 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
       };
     }
 
-    if (extracted.esFueraDeConsumo || pre.esFueraConsumoQuick) {
-      return {
-        currentNode: 'fallback',
-        temaFueraDeConsumo: state.temaFueraDeConsumo + 1,
-        responseText: str(state.locale, 'outOfScope'),
-        uiComponents: [{ type: 'whatsappCTA', casoId: '', area: 'Fuera de tema', proveedor: '', resumen: pre.textoSaneado.slice(0, 50) }],
-        turnCount: state.turnCount + 1,
-      };
-    }
-
-    // Si la IA encontró un área, procedemos
-    const area = fastAreaHint(pre.textoSaneado) || extracted.area;
+    // Si la IA encontró un área, proceder aunque haya flag de fuera-de-consumo
+    // (el área detectada tiene prioridad — si clasificó área, es consumo)
+    const area = extracted.area;
     if (area) {
       const newCaptured = {
         ...state.captured,
@@ -241,9 +253,7 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
         problemaTextoLibre: pre.textoSaneado,
         problemaPrincipal: extracted.problema,
         tiempo: extracted.tiempo,
-        // No pre-populate reclamoPrevio — let intake ask the user directly
       };
-
       const firstQ = getNextQuestion(area, 0, capturedToRecord(newCaptured), state.locale);
       const pasoInfo = computePasoInfo(area, 0, capturedToRecord(newCaptured));
       return {
@@ -252,6 +262,16 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
         intakeStep: 0,
         responseText: getEmpatiaApertura(area, pre.textoSaneado, state.locale),
         uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, placeholder: firstQ.placeholder, ...pasoInfo }] : [],
+        turnCount: state.turnCount + 1,
+      };
+    }
+
+    if (extracted.esFueraDeConsumo || pre.esFueraConsumoQuick) {
+      return {
+        currentNode: 'fallback',
+        temaFueraDeConsumo: state.temaFueraDeConsumo + 1,
+        responseText: str(state.locale, 'outOfScope'),
+        uiComponents: [{ type: 'whatsappCTA', casoId: '', area: 'Fuera de tema', proveedor: '', resumen: pre.textoSaneado.slice(0, 50) }],
         turnCount: state.turnCount + 1,
       };
     }
