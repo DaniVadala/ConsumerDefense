@@ -479,6 +479,17 @@ function buildFieldStatusBlock(incoming: FieldsExtracted | null, locale: string,
       : '\n\n⚡ CONVERSACIÓN ESTANCADA: 3+ turnos sin datos útiles. Usá action:"whatsapp" AHORA. Text: explicar amablemente que no pudiste entender el problema y ofrecer conectar con un abogado que pueda ayudar directamente.';
   }
 
+  // Tertiary stall: empresa (required field) still null after 4 turns.
+  // Covers the case where the user keeps providing optional data (dates, amounts)
+  // but never answers the company-name question — noFieldsAtAll is false so the
+  // primary stall never fires, but we\'re stuck in an identical loop nonetheless.
+  const empresaNeverProvided = !incoming || !has(incoming.empresa);
+  if (empresaNeverProvided && userTurnCount >= 4) {
+    return locale === 'en'
+      ? '\n\n⚡ ESCALATE: 4+ turns and the company name (empresa) is still missing — it is a mandatory field. Use action:"whatsapp" NOW. Text: warmly explain that without knowing which company is involved you can\'t continue; offer to connect with a lawyer who can help directly.'
+      : '\n\n⚡ DERIVAR: 4+ turnos y el nombre de la empresa sigue sin proporcionarse — es un campo obligatorio. Usá action:"whatsapp" AHORA. Text: explicar amablemente que sin saber qué empresa está involucrada no podés continuar; ofrecer conectar con un abogado que pueda ayudar directamente.';
+  }
+
   // Secondary stall: empresa known but conversation is stuck — no optional fields
   // confirmed after many turns. Catches infinite loops like repeated date contradictions
   // where noFieldsAtAll is false (empresa is set) but we\'re spinning on optionals.
