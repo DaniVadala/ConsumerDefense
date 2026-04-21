@@ -85,6 +85,7 @@ interface ExtractedInfo {
   proveedor?: string;
   problema?: string;
   tiempo?: string;
+  monto?: string;
   reclamoPrevio?: boolean;
   esFueraDeConsumo?: boolean;
   esInadecuado?: boolean;
@@ -92,21 +93,23 @@ interface ExtractedInfo {
 
 async function extractInfoFromText(userText: string, locale: string = 'es'): Promise<ExtractedInfo> {
   const safe = sanitizeForPrompt(userText);
-  const prompt = `Analizá el siguiente mensaje y detectá si es inadecuado o fuera de tema de defensa del consumidor en Argentina.
+  const prompt = `Analizá el siguiente mensaje de un consumidor argentino y extraé toda la información disponible.
+IMPORTANTE: esFueraDeConsumo solo es true si el tema NO tiene NADA que ver con consumo (ej: divorcio, laboral, penal). Reclamos a empresas, bancos, aerolíneas, servicios, productos = siempre consumo.
 
 <user_input>
 ${safe}
 </user_input>
 
-Respondé SOLO con JSON:
+Respondé SOLO con JSON válido:
 {
-  "esInadecuado": boolean,
-  "esFueraDeConsumo": boolean,
+  "esInadecuado": false,
+  "esFueraDeConsumo": false,
   "area": "telecomunicaciones|financiero|electrodomesticos|ecommerce|seguros_prepaga|servicios_publicos|turismo_aereo|otros_consumo|null",
-  "proveedor": "empresa o null",
-  "problema": "resumen en máx 15 palabras o null",
-  "tiempo": "tiempo o null",
-  "reclamoPrevio": "true|false|null"
+  "proveedor": "nombre de empresa/marca o null",
+  "problema": "resumen del problema en máx 15 palabras o null",
+  "tiempo": "cuándo ocurrió o período de la factura o null",
+  "monto": "importe mencionado con moneda o null",
+  "reclamoPrevio": true|false|null
 }`;
 
   try {
@@ -121,7 +124,7 @@ Respondé SOLO con JSON:
 
     const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { esFueraDeConsumo: true };
+    if (!jsonMatch) return {};
     const parsed = JSON.parse(jsonMatch[0]);
 
     return {
@@ -129,13 +132,14 @@ Respondé SOLO con JSON:
       proveedor: parsed.proveedor && parsed.proveedor !== 'null' ? truncateField(String(parsed.proveedor), 'proveedor') : undefined,
       problema: parsed.problema && parsed.problema !== 'null' ? truncateField(String(parsed.problema), 'problema') : undefined,
       tiempo: parsed.tiempo && parsed.tiempo !== 'null' ? truncateField(String(parsed.tiempo), 'tiempo') : undefined,
+      monto: parsed.monto && parsed.monto !== 'null' ? truncateField(String(parsed.monto), 'monto') : undefined,
       reclamoPrevio: parsed.reclamoPrevio === true ? true : parsed.reclamoPrevio === false ? false : undefined,
       esFueraDeConsumo: parsed.esFueraDeConsumo === true,
       esInadecuado: parsed.esInadecuado === true,
     };
   } catch (error) {
     console.error('Error parsing user text:', error);
-    return { esFueraDeConsumo: true };
+    return {};
   }
 }
 
@@ -232,6 +236,10 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
         problemaTextoLibre: pre.textoSaneado,
         problemaPrincipal: extracted.problema,
         tiempo: extracted.tiempo,
+        ...(extracted.monto && { monto: extracted.monto }),
+        ...(extracted.reclamoPrevio !== undefined && {
+          reclamoPrevio: { realizado: extracted.reclamoPrevio, conNumero: false },
+        }),
       };
       const firstQ = getNextQuestion(area, 0, capturedToRecord(newCaptured), state.locale);
       const pasoInfo = computePasoInfo(area, 0, capturedToRecord(newCaptured));
@@ -313,7 +321,19 @@ export async function clasificacionNode(state: GraphStateType): Promise<Partial<
   }
 
   if (extracted.area) {
-    const newCaptured = { ...state.captured, area: extracted.area, areaConfirmada: true, problemaTextoLibre: pre.textoSaneado };
+    const newCaptured = {
+      ...state.captured,
+      area: extracted.area,
+      areaConfirmada: true,
+      proveedor: extracted.proveedor,
+      problemaTextoLibre: pre.textoSaneado,
+      problemaPrincipal: extracted.problema,
+      tiempo: extracted.tiempo,
+      ...(extracted.monto && { monto: extracted.monto }),
+      ...(extracted.reclamoPrevio !== undefined && {
+        reclamoPrevio: { realizado: extracted.reclamoPrevio, conNumero: false },
+      }),
+    };
     const firstQ = getNextQuestion(extracted.area, 0, capturedToRecord(newCaptured), state.locale);
     const pasoInfo = computePasoInfo(extracted.area, 0, capturedToRecord(newCaptured));
     return {
