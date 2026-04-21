@@ -21,6 +21,9 @@ import {
   canGeneratePreliminaryDiagnosis,
   getSuggestedDocs,
   getTotalQuestionsForArea,
+  computePasoInfo,
+  DOCS_ES,
+  DOCS_EN,
 } from './questions';
 import { buildAreaList, getAllAreaLabels, getAreaLabel, str } from './chat-strings';
 import { sanitizeForPrompt, detectInjection, detectFueraConsumoQuick, detectAbuse, classifyShortMessage, respuestaParaMensajeCorto, truncateField } from '@/lib/ai/input-guard';
@@ -379,12 +382,16 @@ export async function intakeNode(state: GraphStateType): Promise<Partial<GraphSt
       case 'monto': updatedCaptured.monto = safeAnswer; progressed = true; break;
       case 'reclamoPrevio': {
         const lower = rawMsg.toLowerCase().trim();
-        updatedCaptured.reclamoPrevio = { realizado: /^s[ií]$/.test(lower) || lower.includes('sí'), conNumero: false };
+        const realizado = /^s[ií]\b|^yes\b|\breclamé\b|\bmandé\b|\benvié\b|\bpresenté\b/.test(lower) && !/^no\b/.test(lower);
+        updatedCaptured.reclamoPrevio = { realizado, conNumero: false };
         progressed = true;
         break;
       }
       case 'detalleReclamo': updatedCaptured.detalleReclamo = safeAnswer; progressed = true; break;
-      case 'documentacion': updatedCaptured.documentacion = [safeAnswer]; progressed = true; break;
+      case 'documentacion':
+        updatedCaptured.documentacion = safeAnswer ? safeAnswer.split('|||').map(s => s.trim()).filter(Boolean) : [];
+        progressed = true;
+        break;
     }
   }
 
@@ -404,12 +411,19 @@ export async function intakeNode(state: GraphStateType): Promise<Partial<GraphSt
     captured: updatedCaptured,
     intakeStep: nextStep,
     turnosSinProgreso: progressed ? 0 : state.turnosSinProgreso + 1,
-    uiComponents: [{ type: 'intakeQuestion', pregunta: nextQ.pregunta, opciones: nextQ.opciones, tipoInput: nextQ.tipoInput, pasoActual: nextStep + 1, pasoTotal: getTotalQuestionsForArea(area) }],
+    uiComponents: [{ type: 'intakeQuestion', pregunta: nextQ.pregunta, opciones: nextQ.opciones, tipoInput: nextQ.tipoInput, ...computePasoInfo(area, nextStep, capturedToRecord(updatedCaptured)) }],
     turnCount: state.turnCount + 1,
   };
 }
 
 // (Resto de nodos diagnosticoNode y urgenciaNode se mantienen iguales estructuralmente)
+
+function computeMissingDocs(area: AreaKey, documentacion: string[] | undefined, locale: string): string[] {
+  const allDocs = locale === 'en' ? DOCS_EN[area] : DOCS_ES[area];
+  if (!allDocs) return getSuggestedDocs(area, locale);
+  if (!documentacion || documentacion.length === 0) return allDocs;
+  return allDocs.filter(doc => !documentacion.includes(doc));
+}
 
 function computeFortalezaDocumental(documentacion: string[] | undefined, locale: string): string {
   const doc = (documentacion?.[0] ?? '').toLowerCase();
@@ -434,9 +448,10 @@ export async function diagnosticoNode(state: GraphStateType): Promise<Partial<Gr
     problemaPrincipal: state.captured.problemaPrincipal || state.captured.problemaTextoLibre || notSpecified,
     tiempo: state.captured.tiempo || notSpecified,
     reclamoPrevio: state.captured.reclamoPrevio || { realizado: false, conNumero: false },
+    ...(state.captured.monto && { monto: state.captured.monto }),
     legislacionAplicable: legislacion,
     fortalezaDocumental: computeFortalezaDocumental(state.captured.documentacion, state.locale),
-    documentacionSugerida: getSuggestedDocs(area, state.locale),
+    documentacionSugerida: computeMissingDocs(area, state.captured.documentacion, state.locale),
     disclaimer: getDisclaimer(state.locale),
   };
 
@@ -460,5 +475,5 @@ export async function urgenciaNode(state: GraphStateType): Promise<Partial<Graph
 }
 
 function capturedToRecord(captured: GraphStateType['captured']): Record<string, unknown> {
-  return { area: captured.area, proveedor: captured.proveedor, problema: captured.problemaPrincipal, tiempo: captured.tiempo, monto: captured.monto, reclamoPrevio: captured.reclamoPrevio };
+  return { area: captured.area, proveedor: captured.proveedor, problema: captured.problemaPrincipal, tiempo: captured.tiempo, monto: captured.monto, reclamoPrevio: captured.reclamoPrevio, detalleReclamo: captured.detalleReclamo, documentacion: captured.documentacion };
 }

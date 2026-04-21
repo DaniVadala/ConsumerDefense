@@ -13,7 +13,7 @@ export type UIComponent =
       pregunta: string;
       placeholder?: string;
       opciones: string[];
-      tipoInput: 'seleccion' | 'texto_libre' | 'si_no';
+      tipoInput: 'seleccion' | 'texto_libre' | 'si_no' | 'checklist';
       pasoActual: number;
       pasoTotal: number;
     }

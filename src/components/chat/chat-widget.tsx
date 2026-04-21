@@ -99,7 +99,7 @@ export function ChatWidget() {
 
   const { displayed: welcomeText, done: welcomeDone } = useTypewriter(t.chat.welcome, 8);
 
-  const handleSend = async (text?: string) => {
+  const handleSend = async (text?: string, displayText?: string) => {
     const message = (text ?? input).trim();
     if (!message || isLoading) return;
 
@@ -110,7 +110,7 @@ export function ChatWidget() {
     const msgNum = messages.filter((m) => m.role === 'user').length + 1;
     trackChatMessageSent(msgNum);
 
-    setMessages((prev) => [...prev, { role: 'user', text: message }]);
+    setMessages((prev) => [...prev, { role: 'user', text: displayText ?? message }]);
     setIsLoading(true);
 
     try {
@@ -185,7 +185,10 @@ export function ChatWidget() {
             pasoTotal={component.pasoTotal}
             onSelect={(text) => {
               trackChatIntakeAnswer(component.pasoActual, component.pasoTotal);
-              handleSend(text);
+              const displayText = text.includes('|||')
+                ? text.split('|||').filter(Boolean).join(', ') || 'Sin documentación'
+                : undefined;
+              handleSend(text, displayText);
             }}
             isActive={isActive}
           />

@@ -6,7 +6,7 @@ interface IntakeQuestionProps {
   pregunta: string;
   placeholder?: string;
   opciones: string[];
-  tipoInput: 'seleccion' | 'texto_libre' | 'si_no';
+  tipoInput: 'seleccion' | 'texto_libre' | 'si_no' | 'checklist';
   pasoActual: number;
   pasoTotal: number;
   onSelect: (text: string) => void;
@@ -24,18 +24,24 @@ export function IntakeQuestion({
   isActive,
 }: IntakeQuestionProps) {
   const [textoLibre, setTextoLibre] = useState('');
+  const [checked, setChecked] = useState<string[]>([]);
   const [answered, setAnswered] = useState(false);
-
-  const handleSelect = (text: string) => {
-    if (!isActive || answered) return;
-    setAnswered(true);
-    onSelect(text);
-  };
 
   const handleTextSubmit = () => {
     if (!textoLibre.trim() || !isActive || answered) return;
     setAnswered(true);
     onSelect(textoLibre.trim());
+  };
+
+  const toggleCheck = (item: string) => {
+    if (!isActive || answered) return;
+    setChecked(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
+  };
+
+  const handleChecklistSubmit = () => {
+    if (!isActive || answered) return;
+    setAnswered(true);
+    onSelect(checked.join('|||'));
   };
 
   const progress = Math.round((pasoActual / pasoTotal) * 100);
@@ -56,27 +62,8 @@ export function IntakeQuestion({
       {/* Pregunta */}
       <p className="text-sm font-medium text-gray-800 mb-2">{pregunta}</p>
 
-      {/* Opciones */}
-      {(tipoInput === 'seleccion' || tipoInput === 'si_no') && (
-        <div className="flex flex-wrap gap-2">
-          {opciones.map((opcion) => (
-            <button
-              key={opcion}
-              onClick={() => handleSelect(opcion)}
-              disabled={!isActive || answered}
-              className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
-                answered || !isActive
-                  ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-default'
-                  : 'border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 cursor-pointer'
-              }`}
-            >
-              {opcion}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {tipoInput === 'texto_libre' && (
+      {/* Texto libre (todos los tipos no-checklist) */}
+      {tipoInput !== 'checklist' && (
         <div className="flex gap-2">
           <input
             type="text"
@@ -94,6 +81,51 @@ export function IntakeQuestion({
           >
             OK
           </button>
+        </div>
+      )}
+
+      {/* Checklist */}
+      {tipoInput === 'checklist' && (
+        <div className="flex flex-col gap-1.5">
+          {opciones.map((opcion) => {
+            const isChecked = checked.includes(opcion);
+            return (
+              <button
+                key={opcion}
+                onClick={() => toggleCheck(opcion)}
+                disabled={!isActive || answered}
+                className={`flex items-center gap-2 text-left text-xs px-3 py-2 rounded-lg border transition-colors ${
+                  answered
+                    ? isChecked
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                      : 'border-gray-200 bg-gray-50 text-gray-400'
+                    : isChecked
+                    ? 'border-emerald-400 bg-emerald-50 text-emerald-700 cursor-pointer'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/40 cursor-pointer'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border ${
+                  isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 bg-white'
+                }`}>
+                  {isChecked && (
+                    <svg viewBox="0 0 10 8" className="w-2.5 h-2 fill-none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 4l2.5 2.5L9 1"/>
+                    </svg>
+                  )}
+                </span>
+                {opcion}
+              </button>
+            );
+          })}
+          {!answered && (
+            <button
+              onClick={handleChecklistSubmit}
+              disabled={!isActive}
+              className="mt-1 text-xs px-3 py-2 rounded-lg bg-emerald-600 text-white font-medium disabled:opacity-40 cursor-pointer disabled:cursor-default self-end"
+            >
+              {checked.length === 0 ? 'No tengo ninguna' : `Confirmar (${checked.length})`}
+            </button>
+          )}
         </div>
       )}
     </div>
