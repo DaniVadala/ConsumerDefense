@@ -207,29 +207,8 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
     };
   }
 
-  // 1c. IA GUARD (Para cualquier mensaje que no sea un saludo corto muy obvio)
+  // 1c. IA GUARD + extracción de campos
   if (pre.tipoMensajeCorto === 'none' || pre.esAbuso || pre.esFueraConsumoQuick) {
-    // Chequear hint rápido primero — si hay área obvia, saltear LLM guard
-    const areaHint = fastAreaHint(pre.textoSaneado);
-    if (areaHint && !pre.esAbuso) {
-      const newCaptured = {
-        ...state.captured,
-        area: areaHint,
-        areaConfirmada: true,
-        problemaTextoLibre: pre.textoSaneado,
-      };
-      const firstQ = getNextQuestion(areaHint, 0, capturedToRecord(newCaptured), state.locale);
-      const pasoInfo = computePasoInfo(areaHint, 0, capturedToRecord(newCaptured));
-      return {
-        currentNode: 'intake',
-        captured: newCaptured,
-        intakeStep: 0,
-        responseText: getEmpatiaApertura(areaHint, pre.textoSaneado, state.locale),
-        uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, placeholder: firstQ.placeholder, ...pasoInfo }] : [],
-        turnCount: state.turnCount + 1,
-      };
-    }
-
     const extracted = await extractInfoFromText(pre.textoSaneado, state.locale);
 
     if (extracted.esInadecuado || pre.esAbuso) {
@@ -241,9 +220,9 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
       };
     }
 
-    // Si la IA encontró un área, proceder aunque haya flag de fuera-de-consumo
-    // (el área detectada tiene prioridad — si clasificó área, es consumo)
-    const area = extracted.area;
+    // fastAreaHint tiene prioridad sobre el LLM para el área — más fiable para
+    // keywords obvias. Si hay área (por cualquier vía), es consumo → proceder.
+    const area = fastAreaHint(pre.textoSaneado) || extracted.area;
     if (area) {
       const newCaptured = {
         ...state.captured,
