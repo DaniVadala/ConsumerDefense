@@ -344,16 +344,17 @@ export async function intakeNode(state: GraphStateType): Promise<Partial<GraphSt
   const pre = preProcess(rawMsg);
   const area = state.captured.area!;
 
-  // AI Guard solo para respuestas largas — evita falsos positivos en nombres cortos
+  // AI Guard + extraction combinados — evita falsos positivos en nombres cortos
   // como "Claro" (empresa), "OSDE", "marzo", "$5000", etc.
-  if (pre.esAbuso || pre.esFueraConsumoQuick || rawMsg.length > 40) {
-    const aiCheck = rawMsg.length > 40
+  let extracted: ExtractedInfo | null = null;
+  if (pre.esAbuso || pre.esFueraConsumoQuick || rawMsg.length > 30) {
+    extracted = rawMsg.length > 30
       ? await extractInfoFromText(pre.textoSaneado, state.locale)
       : { esInadecuado: pre.esAbuso, esFueraDeConsumo: pre.esFueraConsumoQuick };
-    if (aiCheck.esInadecuado || aiCheck.esFueraDeConsumo || pre.esAbuso || pre.esFueraConsumoQuick) {
+    if (extracted.esInadecuado || extracted.esFueraDeConsumo || pre.esAbuso || pre.esFueraConsumoQuick) {
       return {
         currentNode: 'fallback',
-        responseText: aiCheck.esInadecuado ? str(state.locale, 'respectRequest') : str(state.locale, 'outOfScope'),
+        responseText: extracted.esInadecuado ? str(state.locale, 'respectRequest') : str(state.locale, 'outOfScope'),
         uiComponents: [{ type: 'whatsappCTA', casoId: '', area: AREAS[area], proveedor: '', resumen: 'Desvío detectado' }],
         turnCount: state.turnCount + 1,
       };
@@ -389,6 +390,19 @@ export async function intakeNode(state: GraphStateType): Promise<Partial<GraphSt
         updatedCaptured.documentacion = safeAnswer ? safeAnswer.split('|||').map(s => s.trim()).filter(Boolean) : [];
         progressed = true;
         break;
+    }
+
+    // Pre-fill upcoming empty campos from the same message when possible.
+    // Only for free-text answers — checklist answers are discrete selections.
+    if (extracted && currentQuestion.tipoInput !== 'checklist') {
+      if (currentQuestion.campo !== 'proveedor' && !updatedCaptured.proveedor && extracted.proveedor)
+        updatedCaptured.proveedor = extracted.proveedor;
+      if (currentQuestion.campo !== 'tiempo' && !updatedCaptured.tiempo && extracted.tiempo)
+        updatedCaptured.tiempo = extracted.tiempo;
+      if (currentQuestion.campo !== 'problema' && !updatedCaptured.problemaPrincipal && extracted.problema)
+        updatedCaptured.problemaPrincipal = extracted.problema;
+      if (currentQuestion.campo !== 'reclamoPrevio' && !updatedCaptured.reclamoPrevio && extracted.reclamoPrevio !== undefined)
+        updatedCaptured.reclamoPrevio = { realizado: extracted.reclamoPrevio, conNumero: false };
     }
   }
 

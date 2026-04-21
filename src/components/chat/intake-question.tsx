@@ -7,8 +7,8 @@ interface IntakeQuestionProps {
   placeholder?: string;
   opciones: string[];
   tipoInput: 'seleccion' | 'texto_libre' | 'si_no' | 'checklist';
-  pasoActual: number;
-  pasoTotal: number;
+  pasoActual?: number;
+  pasoTotal?: number;
   onSelect: (text: string) => void;
   isActive: boolean;
 }
@@ -18,8 +18,6 @@ export function IntakeQuestion({
   placeholder,
   opciones,
   tipoInput,
-  pasoActual,
-  pasoTotal,
   onSelect,
   isActive,
 }: IntakeQuestionProps) {
@@ -44,21 +42,8 @@ export function IntakeQuestion({
     onSelect(checked.join('|||'));
   };
 
-  const progress = Math.round((pasoActual / pasoTotal) * 100);
-
   return (
     <div className="mt-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-      {/* Progress */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${progress}%`, background: 'var(--accent-9)' }}
-          />
-        </div>
-        <span className="text-xs text-gray-400 flex-shrink-0">{pasoActual}/{pasoTotal}</span>
-      </div>
-
       {/* Pregunta */}
       <p className="text-sm font-medium text-gray-800 mb-2">{pregunta}</p>
 
