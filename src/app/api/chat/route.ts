@@ -1,5 +1,6 @@
 ﻿import { NextRequest } from 'next/server';
 import type { ChatAction, DiagnosisData, PlazosData, FieldsExtracted } from '@/lib/chatbot/types';
+import { detectInjection } from '@/lib/ai/input-guard';
 
 export const maxDuration = 30;
 
@@ -216,6 +217,39 @@ RESILIENCE — NEVER return invalid or empty JSON
 - Repeated messages: treat as confirmation, do NOT loop.
 - Typos and spelling errors: infer the intended meaning and continue normally.
 
+════════════════════════════════════════════════
+SPECIALTY LIMITS — REFER WITHOUT RESOLVING
+════════════════════════════════════════════════
+Scope is ONLY Argentine consumer rights (Law 24.240). For everything else, use action:"whatsapp":
+- Other areas of law (divorce, family, labor, criminal): explain this is consumer rights only and suggest consulting a specialist.
+- Foreign jurisdictions (e.g., Mexico's Profeco, US FTC): clarify guidance is exclusively for Argentina.
+- Guarantee requests ("will I definitely win?", "guarantee me a refund"): NEVER promise outcomes. Explain guidance is purely informational and only an attorney can evaluate specific chances.
+
+════════════════════════════════════════════════
+ACTIVE FRAUD / FINANCIAL EMERGENCY
+════════════════════════════════════════════════
+If the user describes an ONGOING fraud ("they are emptying my account right now", "I see unauthorized transfers happening"), SKIP the normal field-collection flow entirely. Use action:"message" with ONLY these emergency steps:
+1. Call your bank/card issuer IMMEDIATELY to block the account or card.
+2. BCRA consumer helpline: 0800-666-6272.
+3. File a police report (available online in most Argentine provinces).
+4. Once the emergency is resolved, you can seek guidance at Defensa del Consumidor.
+
+════════════════════════════════════════════════
+LEGAL INTEGRITY — NO HALLUCINATION
+════════════════════════════════════════════════
+- Only cite articles and laws that actually exist in Argentine law.
+- If the user mentions a non-existent article (e.g., "art. 942 of Law 24.240"), politely correct them: that article does not exist.
+- NEVER invent court decisions, case names, or jurisprudence. If asked for case law, explain you cannot cite specific cases and recommend consulting an attorney.
+- Illegal requests (falsify invoice, alter receipt/date to claim warranty): use action:"whatsapp" + politely decline.
+
+════════════════════════════════════════════════
+DYNAMIC CONTEXT HANDLING
+════════════════════════════════════════════════
+- Contradictory dates that would change the prescription period: ask which date is correct before continuing.
+- Topic switch mid-conversation: if the diagnosis threshold is already met for the first issue, generate the diagnosis; otherwise ask which problem to focus on.
+- User corrects a previously given fact ("I got the amount wrong", "actually it was 2 years ago"): accept the correction, update fields_extracted, and continue.
+- Long text dump (full contract, T&C): explain you cannot review entire documents through this channel; ask for the specific clause or concern.
+
 FIELDS TO COLLECT:
 1. empresa [REQUIRED]
 2. problem description [REQUIRED]
@@ -328,6 +362,39 @@ RESILIENCIA — NUNCA respondas con JSON inválido o vacío
 - Usuario se niega ("no quiero", "prefiero no decir"): si tenés umbral, diagnosticá; si no, acción "whatsapp".
 - Mensajes repetidos: tratalo como confirmación, no entres en loop.
 - Errores de ortografía: inferí la intención y continuá.
+
+════════════════════════════════════════════════
+LÍMITES DE ESPECIALIDAD — DERIVAR SIN RESOLVER
+════════════════════════════════════════════════
+El alcance es SOLO defensa del consumidor argentino (Ley 24.240). Para todo lo demás, usá action:"whatsapp":
+- Otras ramas del derecho (divorcio, familia, laboral, penal): explicar que el asistente cubre consumo únicamente y sugerir consultar con un especialista.
+- Jurisdicción extranjera (ej. Profeco de México, leyes de otro país): aclarar que la orientación es exclusiva para Argentina.
+- Pedidos de garantía de resultado ("¿me garantizás que voy a ganar?", "asegurame que me devuelven la plata"): JAMÁS prometés resultados. La orientación es informativa; solo un abogado puede evaluar chances concretas.
+
+════════════════════════════════════════════════
+URGENCIAS — FRAUDE FINANCIERO ACTIVO
+════════════════════════════════════════════════
+Si el usuario describe un fraude EN CURSO ("me están vaciando la cuenta ahora mismo", "veo transferencias que no hice en tiempo real"), SALTÁ completamente el flujo normal de recopilación de campos. Usá action:"message" con SOLO estos pasos de emergencia:
+1. Llamar al banco/tarjeta AHORA para bloqueo inmediato de la cuenta o tarjeta.
+2. Línea de atención al usuario del BCRA: 0800-666-6272.
+3. Hacer denuncia policial (en muchas provincias es disponible online).
+4. Una vez resuelta la emergencia, orientarse en Defensa del Consumidor.
+
+════════════════════════════════════════════════
+INTEGRIDAD LEGAL — SIN ALUCINACIONES
+════════════════════════════════════════════════
+- Solo citás artículos y leyes que realmente existen en el derecho argentino.
+- Si el usuario menciona un artículo inexistente (ej. "art. 942 de la Ley 24.240"), lo corregís amablemente: ese artículo no existe.
+- JAMÁS inventés fallos judiciales, expedientes ni jurisprudencia. Si te piden casos testigo, explicá que no podés citar jurisprudencia específica y recomendá consultar un abogado.
+- Pedidos de asesoramiento ilegal (falsificar factura, alterar ticket o fecha para cobrar garantía vencida): usar action:"whatsapp" + declinar amablemente.
+
+════════════════════════════════════════════════
+MANEJO DE CONTEXTO DINÁMICO
+════════════════════════════════════════════════
+- Fechas contradictorias que cambian la prescripción: preguntá cuál es la fecha correcta antes de continuar.
+- Cambio de tema a mitad de la conversación: si ya se alcanzó el umbral del caso en curso, generá el diagnóstico; si no, preguntá en qué problema querés enfocarte.
+- El usuario corrige un dato ya dado ("me equivoqué en el monto", "en realidad fue hace 2 años"): aceptar la corrección, actualizar fields_extracted y continuar.
+- El usuario pega un contrato o texto muy largo: explicar que no podés revisar documentos completos por este canal; pedile que señale la cláusula o punto específico.
 
 CAMPOS A RECOPILAR:
 1. empresa [REQUERIDO]
@@ -486,6 +553,22 @@ export async function POST(req: NextRequest) {
 
     if (sanitized.length === 0) {
       return Response.json({ error: 'No valid messages' }, { status: 400 });
+    }
+
+    // Server-side injection guard — first layer before the LLM call.
+    // The LLM also handles injection via action:"whatsapp", but this stops
+    // obvious attempts before they consume tokens.
+    const lastUserContent = sanitized.filter((m) => m.role === 'user').slice(-1)[0]?.content ?? '';
+    const injection = detectInjection(lastUserContent);
+    if (injection.detected) {
+      return Response.json({
+        action: 'whatsapp',
+        text: locale === 'en'
+          ? 'I can only help with consumer rights issues in Argentina. Would you like to connect with a lawyer?'
+          : 'Solo puedo ayudarte con reclamos de consumo en Argentina. ¿Querés conectar con un abogado?',
+        diagnosis: null,
+        fields_extracted: fieldsExtracted,
+      });
     }
 
     // Append the LLM's own field summary from the previous turn to the system
