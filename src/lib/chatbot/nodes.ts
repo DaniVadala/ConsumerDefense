@@ -196,13 +196,13 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
   if (areaKeyDirect) {
     const newCaptured = { ...state.captured, area: areaKeyDirect, areaConfirmada: true };
     const firstQ = getNextQuestion(areaKeyDirect, 0, capturedToRecord(newCaptured), state.locale);
-    const total = getTotalQuestionsForArea(areaKeyDirect);
+    const pasoInfo = computePasoInfo(areaKeyDirect, 0, capturedToRecord(newCaptured));
     return {
       currentNode: 'intake',
       captured: newCaptured,
       intakeStep: 0,
       responseText: getEmpatiaApertura(areaKeyDirect, state.captured.problemaTextoLibre, state.locale),
-      uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, pasoActual: 1, pasoTotal: total }] : [],
+      uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, placeholder: firstQ.placeholder, ...pasoInfo }] : [],
       turnCount: state.turnCount + 1,
     };
   }
@@ -241,21 +241,17 @@ export async function saludoNode(state: GraphStateType): Promise<Partial<GraphSt
         problemaTextoLibre: pre.textoSaneado,
         problemaPrincipal: extracted.problema,
         tiempo: extracted.tiempo,
-        reclamoPrevio: extracted.reclamoPrevio !== undefined ? { realizado: extracted.reclamoPrevio, conNumero: false } : undefined,
+        // No pre-populate reclamoPrevio — let intake ask the user directly
       };
 
-      if (canGenerateDiagnosis(capturedToRecord(newCaptured))) {
-        return { currentNode: 'diagnostico', captured: newCaptured, canDiagnose: true, responseText: getEmpatiaApertura(area, pre.textoSaneado, state.locale), turnCount: state.turnCount + 1 };
-      }
-
-      const total = getTotalQuestionsForArea(area);
       const firstQ = getNextQuestion(area, 0, capturedToRecord(newCaptured), state.locale);
+      const pasoInfo = computePasoInfo(area, 0, capturedToRecord(newCaptured));
       return {
         currentNode: 'intake',
         captured: newCaptured,
         intakeStep: 0,
         responseText: getEmpatiaApertura(area, pre.textoSaneado, state.locale),
-        uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, pasoActual: 1, pasoTotal: total }] : [],
+        uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, placeholder: firstQ.placeholder, ...pasoInfo }] : [],
         turnCount: state.turnCount + 1,
       };
     }
@@ -297,13 +293,13 @@ export async function clasificacionNode(state: GraphStateType): Promise<Partial<
   if (areaKey) {
     const newCaptured = { ...state.captured, area: areaKey, areaConfirmada: true };
     const firstQ = getNextQuestion(areaKey, 0, capturedToRecord(newCaptured), state.locale);
-    const total = getTotalQuestionsForArea(areaKey);
+    const pasoInfo = computePasoInfo(areaKey, 0, capturedToRecord(newCaptured));
     return {
       currentNode: 'intake',
       captured: newCaptured,
       intakeStep: 0,
       responseText: getEmpatiaApertura(areaKey, state.captured.problemaTextoLibre, state.locale),
-      uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, pasoActual: 1, pasoTotal: total }] : [],
+      uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, placeholder: firstQ.placeholder, ...pasoInfo }] : [],
       turnCount: state.turnCount + 1,
     };
   }
@@ -320,12 +316,13 @@ export async function clasificacionNode(state: GraphStateType): Promise<Partial<
   if (extracted.area) {
     const newCaptured = { ...state.captured, area: extracted.area, areaConfirmada: true, problemaTextoLibre: pre.textoSaneado };
     const firstQ = getNextQuestion(extracted.area, 0, capturedToRecord(newCaptured), state.locale);
+    const pasoInfo = computePasoInfo(extracted.area, 0, capturedToRecord(newCaptured));
     return {
       currentNode: 'intake',
       captured: newCaptured,
       intakeStep: 0,
       responseText: getEmpatiaApertura(extracted.area, pre.textoSaneado, state.locale),
-      uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, pasoActual: 1, pasoTotal: getTotalQuestionsForArea(extracted.area) }] : [],
+      uiComponents: firstQ ? [{ type: 'intakeQuestion', pregunta: firstQ.pregunta, opciones: firstQ.opciones, tipoInput: firstQ.tipoInput, placeholder: firstQ.placeholder, ...pasoInfo }] : [],
       turnCount: state.turnCount + 1,
     };
   }
@@ -411,7 +408,7 @@ export async function intakeNode(state: GraphStateType): Promise<Partial<GraphSt
     captured: updatedCaptured,
     intakeStep: nextStep,
     turnosSinProgreso: progressed ? 0 : state.turnosSinProgreso + 1,
-    uiComponents: [{ type: 'intakeQuestion', pregunta: nextQ.pregunta, opciones: nextQ.opciones, tipoInput: nextQ.tipoInput, ...computePasoInfo(area, nextStep, capturedToRecord(updatedCaptured)) }],
+    uiComponents: [{ type: 'intakeQuestion', pregunta: nextQ.pregunta, placeholder: nextQ.placeholder, opciones: nextQ.opciones, tipoInput: nextQ.tipoInput, ...computePasoInfo(area, nextStep, capturedToRecord(updatedCaptured)) }],
     turnCount: state.turnCount + 1,
   };
 }
@@ -426,13 +423,9 @@ function computeMissingDocs(area: AreaKey, documentacion: string[] | undefined, 
 }
 
 function computeFortalezaDocumental(documentacion: string[] | undefined, locale: string): string {
-  const doc = (documentacion?.[0] ?? '').toLowerCase();
-  if (!doc || doc.includes('no tengo') || doc.includes('nothing') || doc.includes('no doc')) {
-    return locale === 'en' ? 'Weak — no documentation available' : 'Débil — sin documentación disponible';
-  }
-  if (doc.includes('varios') || doc.includes('several') || doc.includes('multiple') || doc.includes('número de reclamo') || doc.includes('claim number')) {
-    return locale === 'en' ? 'Strong — multiple documents available' : 'Sólida — documentación múltiple disponible';
-  }
+  const count = documentacion?.length ?? 0;
+  if (count === 0) return locale === 'en' ? 'Weak — no documentation available' : 'Débil — sin documentación disponible';
+  if (count >= 3) return locale === 'en' ? 'Strong — multiple documents available' : 'Sólida — documentación múltiple disponible';
   return locale === 'en' ? 'Partial — some documentation available' : 'Parcial — documentación básica disponible';
 }
 
