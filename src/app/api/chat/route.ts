@@ -245,7 +245,7 @@ LEGAL INTEGRITY — NO HALLUCINATION
 ════════════════════════════════════════════════
 DYNAMIC CONTEXT HANDLING
 ════════════════════════════════════════════════
-- Contradictory dates that would change the prescription period: ask which date is correct before continuing.
+- Contradictory dates: ask ONCE which date is correct. If the user gives ANOTHER different date, accept the most recent value without questioning and move on — never ask about a date contradiction more than once.
 - Topic switch mid-conversation: if the diagnosis threshold is already met for the first issue, generate the diagnosis; otherwise ask which problem to focus on.
 - User corrects a previously given fact ("I got the amount wrong", "actually it was 2 years ago"): accept the correction, update fields_extracted, and continue.
 - Long text dump (full contract, T&C): explain you cannot review entire documents through this channel; ask for the specific clause or concern.
@@ -391,7 +391,7 @@ INTEGRIDAD LEGAL — SIN ALUCINACIONES
 ════════════════════════════════════════════════
 MANEJO DE CONTEXTO DINÁMICO
 ════════════════════════════════════════════════
-- Fechas contradictorias que cambian la prescripción: preguntá cuál es la fecha correcta antes de continuar.
+- Fechas contradictorias: preguntá UNA SOLA VEZ cuál es la correcta. Si al turno siguiente el usuario da OTRA fecha distinta, aceptá ese valor sin cuestionarlo y continuá — nunca repitas una pregunta sobre contradicción de fechas más de una vez.
 - Cambio de tema a mitad de la conversación: si ya se alcanzó el umbral del caso en curso, generá el diagnóstico; si no, preguntá en qué problema querés enfocarte.
 - El usuario corrige un dato ya dado ("me equivoqué en el monto", "en realidad fue hace 2 años"): aceptar la corrección, actualizar fields_extracted y continuar.
 - El usuario pega un contrato o texto muy largo: explicar que no podés revisar documentos completos por este canal; pedile que señale la cláusula o punto específico.
@@ -465,21 +465,32 @@ function buildFieldStatusBlock(incoming: FieldsExtracted | null, locale: string,
     || (!has(incoming.empresa) && !has(incoming.fecha_hechos) && !has(incoming.monto)
         && !incoming.reclamo_previo && !incoming.documentacion);
 
+  // Compute optionalFilled early — used by both stall checks and the status block below.
+  const optionalFilled = !incoming ? 0 : [
+    has(incoming.fecha_hechos),
+    has(incoming.monto),
+    incoming.reclamo_previo,
+    incoming.documentacion,
+  ].filter(Boolean).length;
+
   if (userTurnCount >= 3 && noFieldsAtAll) {
     return locale === 'en'
       ? '\n\n⚡ STALL DETECTED: 3+ turns with no useful data. Use action:"whatsapp" NOW. Text: explain you weren\'t able to understand the issue and offer to connect with a lawyer who can help directly.'
       : '\n\n⚡ CONVERSACIÓN ESTANCADA: 3+ turnos sin datos útiles. Usá action:"whatsapp" AHORA. Text: explicar amablemente que no pudiste entender el problema y ofrecer conectar con un abogado que pueda ayudar directamente.';
   }
 
+  // Secondary stall: empresa known but conversation is stuck — no optional fields
+  // confirmed after many turns. Catches infinite loops like repeated date contradictions
+  // where noFieldsAtAll is false (empresa is set) but we\'re spinning on optionals.
+  const stuckOnOptionals = incoming && has(incoming.empresa) && optionalFilled === 0 && userTurnCount >= 5;
+  if (stuckOnOptionals) {
+    return locale === 'en'
+      ? '\n\n⚡ CONVERSATION STUCK: 5+ turns, empresa identified but no optional fields confirmed (date/amount/prior-complaint/docs all still null). Use action:"whatsapp" NOW. Text: explain that without more details you can\'t go further and offer to connect with a lawyer.'
+      : '\n\n⚡ CONVERSACIÓN ESTANCADA: 5+ turnos, empresa conocida pero ningún campo opcional confirmado (fecha, monto, reclamo previo y documentación siguen sin datos). Usá action:"whatsapp" AHORA. Text: explicar amablemente que sin más datos no podés avanzar y ofrecer conectar con un abogado.';
+  }
+
   // First turn: no fields yet — omit the block, LLM reads conversation fresh.
   if (!incoming) return '';
-
-  const optionalFilled = [
-    has(incoming.fecha_hechos),
-    has(incoming.monto),
-    incoming.reclamo_previo,
-    incoming.documentacion,
-  ].filter(Boolean).length;
 
   // Threshold: empresa + any 2 of 4 optional fields → diagnose immediately
   const canDiagnose = has(incoming.empresa) && optionalFilled >= 2;
@@ -599,10 +610,15 @@ export async function POST(req: NextRequest) {
 
     let groqRes = await callGroq();
 
-    // Silent retry: 429 burst limits typically clear in 1-2 seconds.
+    // Silent retry: 429 burst limits typically clear in 1-5 seconds.
+    // Two attempts with progressive backoff before giving up.
     if (groqRes.status === 429) {
       await new Promise((r) => setTimeout(r, 1500));
       groqRes = await callGroq();
+      if (groqRes.status === 429) {
+        await new Promise((r) => setTimeout(r, 3000));
+        groqRes = await callGroq();
+      }
     }
 
     if (!groqRes.ok) {
