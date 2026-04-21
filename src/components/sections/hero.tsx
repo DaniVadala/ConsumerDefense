@@ -91,7 +91,7 @@ export function Hero() {
         <div className="flex flex-col gap-5 max-w-[540px] mx-auto w-full">
 
           {/* 1. Headline */}
-          <h1 className="text-3xl font-extrabold text-white leading-[1.1] tracking-tight text-center">
+          <h1 className="text-2xl font-extrabold text-white leading-[1.1] tracking-tight text-center">
             {t.hero.headline1}{' '}
             <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
               {t.hero.headline2}
@@ -204,7 +204,7 @@ export function Hero() {
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
 
             {/* Headline */}
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-[1.08] tracking-tight mb-4">
+            <h1 className="text-[2.5rem] font-extrabold text-white leading-[1.08] tracking-tight mb-4">
               {t.hero.headline1}{' '}
               <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
                 {t.hero.headline2}
