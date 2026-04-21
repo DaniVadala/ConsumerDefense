@@ -63,19 +63,19 @@ function generateCasoId(): string {
 
 function fastAreaHint(text: string): AreaKey | null {
   const t = text.toLowerCase();
-  if (/\b(personal|claro|movistar|telecentro|fibertel|arnet|wifi|internet|celular|tel[eé]fono|roaming|datos\s+m[oó]viles)\b/.test(t))
+  if (/\b(personal|claro|movistar|telecentro|fibertel|arnet|wifi|internet|celular|tel[eé]fono|roaming|datos\s+m[oó]viles)\b/i.test(t))
     return 'telecomunicaciones';
-  if (/\b(banco|tarjeta|visa|mastercard|galicia|santander|naranja|mercado\s*pago|ualá|brubank|débito|d[ée]bito|resumen|veraz|BCRA)\b/.test(t))
+  if (/\b(banco|tarjeta|visa|mastercard|galicia|santander|naranja|mercado\s*pago|ual[aá]|brubank|d[eé]bito|resumen\s+de\s+cuenta|resumen\s+de\s+tarjeta|veraz|bcra)\b/i.test(t))
     return 'financiero';
-  if (/\b(fr[áa]vega|garbarino|musimundo|samsung|LG|whirlpool|heladera|lavarropas|televisor|garant[ií]a\s+(del\s+)?(producto|electro))\b/.test(t))
+  if (/\b(fr[áa]vega|garbarino|musimundo|samsung|lg\b|whirlpool|heladera|lavarropas|televisor|garant[ií]a\s+(del\s+)?(producto|electro))\b/i.test(t))
     return 'electrodomesticos';
-  if (/\b(mercado\s*libre|tiendanube|instagram|compra\s+online|comprad[a|o]\s+por\s+internet|ecommerce|shopify|tienda\s+online)\b/.test(t))
+  if (/\b(mercado\s*libre|tiendanube|compra\s+online|comprad[ao]\s+por\s+internet|ecommerce|shopify|tienda\s+online)\b/i.test(t))
     return 'ecommerce';
-  if (/\b(osde|swiss\s*medical|galeno|medicus|prepaga|obra\s+social|apross|ioma|seguro\s+(de\s+)?(auto|hogar|vida))\b/.test(t))
+  if (/\b(osde|swiss\s*medical|galeno|medicus|prepaga|obra\s+social|apross|ioma|seguro\s+(de\s+)?(auto|hogar|vida))\b/i.test(t))
     return 'seguros_prepaga';
-  if (/\b(edenor|edesur|epec|luz|electricidad|gas\s+(natural|de\s+red)|aguas\s+cordobesas|agua\s+potable)\b/.test(t))
+  if (/\b(edenor|edesur|epec|luz\s+el[eé]ctrica|electricidad|gas\s+(natural|de\s+red)|aguas\s+cordobesas|agua\s+potable)\b/i.test(t))
     return 'servicios_publicos';
-  if (/\b(aerol[ií]neas|LATAM|flybondi|jetsmart|despegar|almundo|booking|vuelo|aeropuerto|equipaje|paquete\s+tur[ií]stico)\b/.test(t))
+  if (/\b(aerol[ií]neas|latam|flybondi|jetsmart|despegar|almundo|booking|vuelo|aeropuerto|equipaje|boleto\s+(de\s+)?avi[oó]n|avi[oó]n|cancelar(on)?\s+el\s+(vuelo|viaje)|paquete\s+tur[ií]stico)\b/i.test(t))
     return 'turismo_aereo';
   return null;
 }
@@ -139,7 +139,8 @@ Respondé SOLO con JSON válido:
     };
   } catch (error) {
     console.error('Error parsing user text:', error);
-    return {};
+    // Devolver sin flags de bloqueo — fastAreaHint aún puede detectar el área
+    return { esFueraDeConsumo: false, esInadecuado: false };
   }
 }
 
