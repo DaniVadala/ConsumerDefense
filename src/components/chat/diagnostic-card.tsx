@@ -182,7 +182,7 @@ export function DiagnosticCard({ data }: { data: DiagnosticoData }) {
           <ShieldCheck size={14} style={{ color: 'var(--accent-9)' }} />
           <span className="text-sm font-bold">{ui.docEstado}</span>
         </div>
-        <p className="text-xs text-gray-600">{data.fortalezaDocumental}</p>
+        {data.fortalezaDocumental && <p className="text-xs text-gray-600">{data.fortalezaDocumental}</p>}
         {data.documentacionSugerida.length > 0 && (
           <div className="mt-1">
             <p className="text-xs text-gray-500 mb-0.5">{ui.docSugerimos}</p>

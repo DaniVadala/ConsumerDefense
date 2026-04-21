@@ -130,7 +130,7 @@ export interface DiagnosticoData {
   reclamoPrevio: { realizado: boolean; conNumero: boolean };
   detalleReclamo?: string;
   legislacionAplicable: string[];
-  fortalezaDocumental: string;
+  fortalezaDocumental?: string;
   documentacionSugerida: string[];
   disclaimer: string;
   /** Stats de encuadre (sin prometer resultado). */

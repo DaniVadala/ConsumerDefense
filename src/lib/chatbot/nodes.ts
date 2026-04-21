@@ -395,7 +395,7 @@ export async function intakeNode(state: GraphStateType): Promise<Partial<GraphSt
   const nextStep = progressed ? state.intakeStep + 1 : state.intakeStep;
   const nextQ = getNextQuestion(area, nextStep, capturedToRecord(updatedCaptured), state.locale);
 
-  if (!nextQ || canGenerateDiagnosis(capturedToRecord(updatedCaptured))) {
+  if (!nextQ) {
     return { currentNode: 'diagnostico', captured: updatedCaptured, turnCount: state.turnCount + 1 };
   }
 
@@ -411,6 +411,17 @@ export async function intakeNode(state: GraphStateType): Promise<Partial<GraphSt
 
 // (Resto de nodos diagnosticoNode y urgenciaNode se mantienen iguales estructuralmente)
 
+function computeFortalezaDocumental(documentacion: string[] | undefined, locale: string): string {
+  const doc = (documentacion?.[0] ?? '').toLowerCase();
+  if (!doc || doc.includes('no tengo') || doc.includes('nothing') || doc.includes('no doc')) {
+    return locale === 'en' ? 'Weak — no documentation available' : 'Débil — sin documentación disponible';
+  }
+  if (doc.includes('varios') || doc.includes('several') || doc.includes('multiple') || doc.includes('número de reclamo') || doc.includes('claim number')) {
+    return locale === 'en' ? 'Strong — multiple documents available' : 'Sólida — documentación múltiple disponible';
+  }
+  return locale === 'en' ? 'Partial — some documentation available' : 'Parcial — documentación básica disponible';
+}
+
 export async function diagnosticoNode(state: GraphStateType): Promise<Partial<GraphStateType>> {
   const area = state.captured.area!;
   const legislacion = LEGISLACION_POR_AREA[area] || ['Ley 24.240'];
@@ -424,7 +435,7 @@ export async function diagnosticoNode(state: GraphStateType): Promise<Partial<Gr
     tiempo: state.captured.tiempo || notSpecified,
     reclamoPrevio: state.captured.reclamoPrevio || { realizado: false, conNumero: false },
     legislacionAplicable: legislacion,
-    fortalezaDocumental: notSpecified,
+    fortalezaDocumental: computeFortalezaDocumental(state.captured.documentacion, state.locale),
     documentacionSugerida: getSuggestedDocs(area, state.locale),
     disclaimer: getDisclaimer(state.locale),
   };
