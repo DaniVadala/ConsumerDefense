@@ -186,7 +186,7 @@ RESPONSE SCHEMA (always valid JSON, nothing outside the object):
   "fields_extracted": {
     "empresa": "Named company or brand the user explicitly stated (e.g. 'Claro', 'BBVA', 'MercadoPago', 'Fravega'). NEVER use generic words like 'tarjeta', 'banco', 'empresa', 'proveedor', 'comercio', 'prestadora'. If the user has not named a specific company → null",
     "fecha_hechos": "Date or period exactly as mentioned by the user, or null",
-    "monto": "Amount/charge exactly as mentioned by the user, or null",
+    "monto": "Specific numeric amount stated explicitly by the user (e.g. '$5000', '200 pesos', '$15.000'). NEVER use vague words like 'mucho', 'muchisimo', 'bastante', 'demasiado', 'un monton', 'mucha plata'. If no specific figure was given → null",
     "reclamo_previo": true | false,
     "documentacion": true | false,
     "confusion_count": <copy previous value; add 1 if this user turn is incoherent, contradictory, or repeats a value already captured for the same field; never decrease>
@@ -294,7 +294,7 @@ SCHEMA DE RESPUESTA (siempre JSON válido, sin nada fuera del objeto):
   "fields_extracted": {
     "empresa": "Nombre de empresa o marca específica que el usuario mencionó explícitamente (ej: 'Claro', 'BBVA', 'MercadoPago', 'Frávega'). NUNCA uses palabras genéricas como 'tarjeta', 'banco', 'empresa', 'proveedor', 'comercio', 'prestadora'. Si el usuario no nombró una empresa específica → null",
     "fecha_hechos": "Fecha o período tal como lo mencionó el usuario, o null",
-    "monto": "Monto/importe tal como lo mencionó el usuario, o null",
+    "monto": "Monto o importe numérico específico que el usuario mencionó (ej: '$5000', '200 pesos', '$15.000'). NUNCA uses palabras vagas como 'mucho', 'muchísimo', 'bastante', 'demasiado', 'un montón', 'mucha plata'. Si no hay cifra concreta → null",
     "reclamo_previo": true | false,
     "documentacion": true | false,
     "confusion_count": <copiá el valor anterior; sumá 1 si la respuesta del usuario es incoherente, contradictoria consigo misma, o repite un valor que ya estaba capturado para ese campo; nunca decrementés>
@@ -406,7 +406,7 @@ function buildFieldStatusBlock(incoming: FieldsExtracted | null, locale: string,
     incoming.documentacion,
   ].filter(Boolean).length;
 
-  if (userTurnCount >= 3 && noFieldsAtAll) {
+  if (userTurnCount >= 2 && noFieldsAtAll) {
     return locale === 'en'
       ? '\n\n⚡ STALL DETECTED: 3+ turns with no useful data. Use action:"whatsapp" NOW. Text: explain you weren\'t able to understand the issue and offer to connect with a lawyer who can help directly.'
       : '\n\n⚡ CONVERSACIÓN ESTANCADA: 3+ turnos sin datos útiles. Usá action:"whatsapp" AHORA. Text: explicar amablemente que no pudiste entender el problema y ofrecer conectar con un abogado que pueda ayudar directamente.';
@@ -533,7 +533,27 @@ export async function POST(req: NextRequest) {
     const userMsgs = sanitized.filter((m) => m.role === 'user');
     if (userMsgs.length >= 2) {
       const lastTwo = userMsgs.slice(-2).map((m) => normaliseMsg(m.content));
+
+      // Exact repeat.
       if (lastTwo[0] === lastTwo[1]) {
+        return Response.json({
+          action: 'whatsapp',
+          text: locale === 'en'
+            ? 'It seems we\'re going in circles. Let me connect you with a lawyer who can help you directly.'
+            : 'Parece que estamos dando vueltas. Te conecto con un abogado que puede ayudarte directamente.',
+          diagnosis: null,
+          fields_extracted: fieldsExtracted,
+        });
+      }
+
+      // Near-duplicate: "me cobraron mucho" → "me cobraron muchisimo".
+      // If the shorter message (stripped of its last char) is a prefix of the longer one
+      // the user is elaborating without providing new data.
+      const [shorter, longer] = lastTwo[0].length <= lastTwo[1].length
+        ? [lastTwo[0], lastTwo[1]]
+        : [lastTwo[1], lastTwo[0]];
+      const prefixLen = Math.max(4, Math.floor(shorter.length * 0.8));
+      if (shorter.length >= 8 && longer.startsWith(shorter.slice(0, prefixLen))) {
         return Response.json({
           action: 'whatsapp',
           text: locale === 'en'
@@ -622,13 +642,12 @@ export async function POST(req: NextRequest) {
       // Still failing after retry — tell the client to rollback and let the user resend.
       // retryable:true means the client will NOT inject this into conversation history.
       return Response.json({
-        action: 'message',
+        action: 'whatsapp',
         text: locale === 'en'
-          ? "Sorry, I couldn't process that just now. Please send your message again."
-          : 'No pude procesar tu mensaje en este momento. Por favor, intentá enviarlo de nuevo.',
+          ? 'High traffic right now — our assistant is temporarily unavailable. Connect with a lawyer directly for immediate help.'
+          : 'Hay mucho tráfico en este momento — el asistente no está disponible temporalmente. Conectáte con un abogado para ayuda inmediata.',
         diagnosis: null,
-        fields_extracted: null,
-        retryable: true,
+        fields_extracted: fieldsExtracted ?? null,
       });
     }
 
