@@ -184,7 +184,7 @@ RESPONSE SCHEMA (always valid JSON, nothing outside the object):
   "text": "Visible message for the user",
   "diagnosis": null | { ...see below },
   "fields_extracted": {
-    "empresa": "Exact company/provider name as mentioned by the user, or null",
+    "empresa": "Named company or brand the user explicitly stated (e.g. 'Claro', 'BBVA', 'MercadoPago', 'Fravega'). NEVER use generic words like 'tarjeta', 'banco', 'empresa', 'proveedor', 'comercio', 'prestadora'. If the user has not named a specific company → null",
     "fecha_hechos": "Date or period exactly as mentioned by the user, or null",
     "monto": "Amount/charge exactly as mentioned by the user, or null",
     "reclamo_previo": true | false,
@@ -292,7 +292,7 @@ SCHEMA DE RESPUESTA (siempre JSON válido, sin nada fuera del objeto):
   "text": "Texto visible para el usuario",
   "diagnosis": null | { ...ver abajo },
   "fields_extracted": {
-    "empresa": "Nombre exacto de la empresa/proveedor según el usuario, o null",
+    "empresa": "Nombre de empresa o marca específica que el usuario mencionó explícitamente (ej: 'Claro', 'BBVA', 'MercadoPago', 'Frávega'). NUNCA uses palabras genéricas como 'tarjeta', 'banco', 'empresa', 'proveedor', 'comercio', 'prestadora'. Si el usuario no nombró una empresa específica → null",
     "fecha_hechos": "Fecha o período tal como lo mencionó el usuario, o null",
     "monto": "Monto/importe tal como lo mencionó el usuario, o null",
     "reclamo_previo": true | false,
@@ -519,6 +519,31 @@ export async function POST(req: NextRequest) {
 
     // Stall detection + turn counting uses the FULL history (not the window).
     const userTurnCount = sanitized.filter((m) => m.role === 'user').length;
+
+    // Deterministic repetition guard — no LLM needed.
+    // If the last 2 user messages are identical after normalisation the user is
+    // looping (keeps repeating the same phrase regardless of what the bot asks).
+    // Stop immediately before consuming more tokens.
+    const normaliseMsg = (s: string) =>
+      s.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const userMsgs = sanitized.filter((m) => m.role === 'user');
+    if (userMsgs.length >= 2) {
+      const lastTwo = userMsgs.slice(-2).map((m) => normaliseMsg(m.content));
+      if (lastTwo[0] === lastTwo[1]) {
+        return Response.json({
+          action: 'whatsapp',
+          text: locale === 'en'
+            ? 'It seems we\'re going in circles. Let me connect you with a lawyer who can help you directly.'
+            : 'Parece que estamos dando vueltas. Te conecto con un abogado que puede ayudarte directamente.',
+          diagnosis: null,
+          fields_extracted: fieldsExtracted,
+        });
+      }
+    }
 
     // Server-side injection guard — first layer before the LLM call.
     // The LLM also handles injection via action:"whatsapp", but this stops
