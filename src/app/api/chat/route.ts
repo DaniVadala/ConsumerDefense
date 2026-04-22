@@ -489,13 +489,13 @@ export async function POST(req: NextRequest) {
       fieldsExtracted?: FieldsExtracted | null;
     };
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
-      console.error('GROQ_API_KEY is not set');
+      console.error('GOOGLE_GENERATIVE_AI_API_KEY is not set');
       return Response.json({ error: 'AI service not configured' }, { status: 500 });
     }
 
-    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+    const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
     // Sanitize messages: only user/assistant roles, trim and cap content.
     // Chat messages are short — 600 chars is generous and prevents bloat.
@@ -586,59 +586,45 @@ export async function POST(req: NextRequest) {
     const fieldStatusBlock = buildFieldStatusBlock(fieldsExtracted, locale, userTurnCount);
     const systemPrompt = buildSystemPrompt(locale) + fieldStatusBlock;
 
-    const groqMessages = [
-      { role: 'system', content: systemPrompt },
-      ...contextWindow,
-    ];
+    // Map to Gemini format: assistant→model, content string → parts array.
+    // Gemini requires the first turn to be "user" — drop any leading "model" turn.
+    const geminiContents = contextWindow
+      .map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }))
+      .filter((_, i, arr) => i > 0 || arr[0].role === 'user');
 
-    // callGroq accepts the model so we can fall back on TPD (daily quota) errors.
-    const callGroq = (m: string) =>
-      fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model: m, messages: groqMessages, temperature: 0.3, max_tokens: 900, response_format: { type: 'json_object' } }),
-      });
+    const callGemini = (m: string) =>
+      fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: geminiContents.length > 0 ? geminiContents : [{ role: 'user', parts: [{ text: '.' }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.3,
+              maxOutputTokens: 900,
+            },
+          }),
+        },
+      );
 
-    // Fallback: higher daily limit (500k/day) when primary (100k/day) is exhausted.
-    const FALLBACK_MODEL = 'llama-3.1-8b-instant';
-    let activeModel = model;
-    let groqRes = await callGroq(activeModel);
+    let geminiRes = await callGemini(model);
 
-    if (groqRes.status === 429) {
-      // Read body once to classify the rate-limit type and extract required wait.
-      const errBody = await groqRes.json().catch(() => null);
-      const errMsg = String(errBody?.error?.message ?? '');
-
-      // Parse "Please try again in X.XXs" or "in Xms" from the error message.
-      const waitSecMatch = errMsg.match(/try again in (\d+(?:\.\d+)?)s/);
-      const waitMsMatch  = errMsg.match(/try again in (\d+)ms/);
-      const requiredWaitMs = waitSecMatch
-        ? Math.ceil(parseFloat(waitSecMatch[1]) * 1000)
-        : waitMsMatch
-          ? parseInt(waitMsMatch[1], 10)
-          : 2000; // default if we can't parse
-
-      const isTPD = errMsg.includes('tokens per day');
-
-      if (isTPD || requiredWaitMs > 5000) {
-        // Daily limit OR required wait is too long (>5s) → switch to fallback model immediately.
-        activeModel = FALLBACK_MODEL;
-        groqRes = await callGroq(activeModel);
-      } else {
-        // TPM burst with short required wait — pause exactly the required time then retry.
-        await new Promise((r) => setTimeout(r, requiredWaitMs + 300)); // +300ms buffer
-        groqRes = await callGroq(activeModel);
-        if (groqRes.status === 429) {
-          // Second 429 — fall back to the smaller model rather than making user wait more.
-          activeModel = FALLBACK_MODEL;
-          groqRes = await callGroq(activeModel);
-        }
-      }
+    if (geminiRes.status === 429) {
+      // Brief pause then one retry — Gemini free tier is 15 RPM so a short
+      // wait is usually enough to clear a burst.
+      await new Promise((r) => setTimeout(r, 4000));
+      geminiRes = await callGemini(model);
     }
 
-    if (!groqRes.ok) {
-      const errText = await groqRes.text().catch(() => 'unknown');
-      console.error('Groq API error:', groqRes.status, errText);
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text().catch(() => 'unknown');
+      console.error('Gemini API error:', geminiRes.status, errText);
       // Still failing after retry — tell the client to rollback and let the user resend.
       // retryable:true means the client will NOT inject this into conversation history.
       return Response.json({
@@ -651,8 +637,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const groqData = await groqRes.json().catch(() => null);
-    const rawContent: string = groqData?.choices?.[0]?.message?.content ?? '';
+    const geminiData = await geminiRes.json().catch(() => null);
+    const rawContent: string = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
     // Parse JSON response from LLM
     let parsed: { action?: string; text?: string; diagnosis?: unknown; fields_extracted?: FieldsExtracted } = {};
