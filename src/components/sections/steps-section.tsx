@@ -2,7 +2,6 @@
 
 import { MessageCircle, FileCheck, Scale } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
-import { useChatAvailability } from '@/lib/chat-availability-context';
 
 const STEP_META = [
   { icon: MessageCircle, step: '01', gradient: 'from-emerald-500 to-teal-500', ring: 'ring-emerald-200', glow: 'shadow-emerald-200/60' },
@@ -12,9 +11,7 @@ const STEP_META = [
 
 export function StepsSection() {
   const { t } = useLocale();
-  const { chatAvailable } = useChatAvailability();
   const steps = t.steps.steps.map((s, i) => ({ ...s, ...STEP_META[i] }));
-  if (!chatAvailable) return null;
   return (
     <section
       id="como-funciona"

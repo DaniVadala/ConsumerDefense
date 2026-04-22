@@ -6,7 +6,6 @@ import { useLocale } from '@/lib/i18n/context';
 import { useCalModal } from '../cal-modal';
 import { LeadForm } from '../lead-form';
 import { trackChatFocus, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen, trackCalModalOpen, trackCalPreload, trackExternalLinkClick } from '@/lib/analytics';
-import { useChatAvailability } from '@/lib/chat-availability-context';
 import { openMailCompose } from '@/lib/utils';
 
 
@@ -73,7 +72,6 @@ export function Footer() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
   const { openCalModal, preloadCal } = useCalModal();
-  const { chatAvailable } = useChatAvailability();
 
   return (
     <footer className="bg-gray-900 text-white" aria-label="Pie de página">
@@ -115,7 +113,6 @@ export function Footer() {
           <div>
             <FooterHeading>{t.footer.contactHeading}</FooterHeading>
             <ul className="space-y-3">
-              {chatAvailable && (
               <li>
                 <button
                   onClick={() => { trackChatFocus(); focusChatInput(); }}
@@ -125,7 +122,6 @@ export function Footer() {
                   {t.footer.contactChat}
                 </button>
               </li>
-              )}
               <li>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.footer.contactWaText)}`}

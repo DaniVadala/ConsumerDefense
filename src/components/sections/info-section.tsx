@@ -6,7 +6,6 @@ import { LeadForm } from '../lead-form';
 import { useCalModal } from '../cal-modal';
 import { useLocale } from '@/lib/i18n/context';
 import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen } from '@/lib/analytics';
-import { useChatAvailability } from '@/lib/chat-availability-context';
 import { openMailCompose } from '@/lib/utils';
 
 const WHATSAPP_NUMBER = '5493515284074';
@@ -16,7 +15,6 @@ export function InfoSection() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
   const { openCalModal, preloadCal } = useCalModal();
-  const { chatAvailable } = useChatAvailability();
 
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
 
@@ -40,10 +38,10 @@ export function InfoSection() {
         </div>
 
         {/* ── Primary CTAs ── */}
-        <div className={`grid grid-cols-1 gap-4 mb-4 ${chatAvailable ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+        <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-3">
 
-          {/* AI Chat — primary (hidden when service unavailable) */}
-          {chatAvailable && <a
+          {/* AI Chat */}
+          <a
             href="#chat"
             onClick={(e) => {
               e.preventDefault();
@@ -77,7 +75,7 @@ export function InfoSection() {
                 {t.info.aiDesc}
               </p>
             </div>
-          </a>}
+          </a>
 
           {/* Cal.com — Schedule meeting — primary */}
           <button

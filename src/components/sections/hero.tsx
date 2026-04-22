@@ -3,9 +3,9 @@
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useCalModal } from '@/components/cal-modal';
-import { ArrowRight, MessageCircle } from 'lucide-react';
+import { ArrowRight, RotateCcw } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
-import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick } from '@/lib/analytics';
+import { trackChatFocus, trackCalModalOpen, trackCalPreload } from '@/lib/analytics';
 import { useChatAvailability } from '@/lib/chat-availability-context';
 
 const ChatWidget = dynamic(
@@ -43,29 +43,41 @@ function focusChatInput() {
   window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
 }
 
+const WA_SPECIALIST_HREF = `https://wa.me/5493515284074?text=${encodeURIComponent('Hola DefensaYa, ya completé el análisis preliminar y quiero hablar con un especialista para presentar mi reclamo.')}`;
+
+function WhatsAppHeroButton({ className }: { className?: string }) {
+  return (
+    <a
+      href={WA_SPECIALIST_HREF}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center justify-center gap-2 text-white text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] hover:shadow-xl w-full ${className ?? ''}`}
+      style={{ background: '#25D366' }}
+    >
+      <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current flex-shrink-0" aria-hidden="true">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+        <path d="M11.894 0C5.354 0 0 5.353 0 11.893c0 2.098.547 4.142 1.588 5.945L.057 24l6.304-1.654a11.913 11.913 0 005.533 1.375h.005C18.43 23.721 23.786 18.369 23.786 11.83 23.786 5.29 18.433-.001 11.894 0zm0 21.785h-.004a9.892 9.892 0 01-5.044-1.381l-.361-.214-3.742.981.998-3.648-.235-.374a9.842 9.842 0 01-1.51-5.27c0-5.445 4.432-9.876 9.882-9.876 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.89-9.865 9.89z" />
+      </svg>
+      Hablar con un especialista
+    </a>
+  );
+}
+
 export function Hero() {
   const { t } = useLocale();
   const { openCalModal, preloadCal } = useCalModal();
-  const { chatAvailable, conversationEnded, resetKey, resetConversation } = useChatAvailability();
-
-  const waUrl = 'https://wa.me/5493515284074?text=' + encodeURIComponent('Hola, necesito ayuda con un reclamo de consumidor');
+  const { chatAvailable, resetKey, isConversationEnded, resetConversation, isRateLimited } = useChatAvailability();
 
   const handleCalOpen = () => { trackCalModalOpen('hero'); openCalModal(); };
   const handleCalPreload = () => { trackCalPreload('hero'); preloadCal(); };
 
   const handleCtaClickDesktop = () => {
-    if (conversationEnded) {
-      resetConversation();
-      setTimeout(focusChatInput, 50);
-    } else {
-      focusChatInput();
-    }
+    if (isConversationEnded) { resetConversation(); return; }
+    focusChatInput();
   };
 
   const handleCtaClickMobile = () => {
-    if (conversationEnded) {
-      resetConversation();
-    }
+    if (isConversationEnded) { resetConversation(); return; }
     document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -155,27 +167,23 @@ export function Hero() {
             />
           </div>
 
-          {/* 6. CTA + WA link */}
+          {/* 6. CTA */}
           <div className="flex flex-col items-center gap-1.5">
-            {chatAvailable ? (
-              <button
-                onClick={handleCtaClickMobile}
-                className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
-              >
-                {conversationEnded ? t.hero.ctaButtonReset : t.hero.ctaButton}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-              </button>
-            ) : (
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackWhatsAppClick('hero')}
-                className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1faf38] text-white text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full"
-              >
-                <MessageCircle className="w-5 h-5 fill-white" strokeWidth={1.5} />
-                Escribinos por WhatsApp
-              </a>
+            {chatAvailable && (
+              isRateLimited ? (
+                <WhatsAppHeroButton />
+              ) : (
+                <button
+                  onClick={handleCtaClickMobile}
+                  className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
+                >
+                  {isConversationEnded ? (
+                    <><RotateCcw className="w-4 h-4" />Iniciá un nuevo análisis gratis</>
+                  ) : (
+                    <>{t.hero.ctaButton}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" /></>
+                  )}
+                </button>
+              )
             )}
             <span className="text-xs text-white/55">{t.hero.ctaSubtext}</span>
 
@@ -247,25 +255,21 @@ export function Hero() {
               />
               {/* CTA buttons — overlap the bottom of the image */}
               <div className="flex flex-col items-center gap-1 w-full max-w-sm -mt-8 relative z-10">
-                  {chatAvailable ? (
-                    <button
-                      onClick={handleCtaClickDesktop}
-                      className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
-                    >
-                      {conversationEnded ? t.hero.ctaButtonReset : t.hero.ctaButton}
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-                    </button>
-                  ) : (
-                    <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => trackWhatsAppClick('hero')}
-                      className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1faf38] text-white text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full"
-                    >
-                      <MessageCircle className="w-5 h-5 fill-white" strokeWidth={1.5} />
-                      Escribinos por WhatsApp
-                    </a>
+                  {chatAvailable && (
+                    isRateLimited ? (
+                      <WhatsAppHeroButton />
+                    ) : (
+                      <button
+                        onClick={handleCtaClickDesktop}
+                        className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
+                      >
+                        {isConversationEnded ? (
+                          <><RotateCcw className="w-4 h-4" />Iniciá un nuevo análisis gratis</>
+                        ) : (
+                          <>{t.hero.ctaButton}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" /></>
+                        )}
+                      </button>
+                    )
                   )}
                   <span className="text-xs text-white/60">{t.hero.ctaSubtext}</span>
 
