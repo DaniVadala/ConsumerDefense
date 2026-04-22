@@ -259,6 +259,12 @@ export function ChatWidget() {
             monto:          data.fields_extracted!.monto          ?? prev?.monto          ?? null,
             reclamo_previo: data.fields_extracted!.reclamo_previo || (prev?.reclamo_previo ?? false),
             documentacion:  data.fields_extracted!.documentacion  || (prev?.documentacion  ?? false),
+            // Never decrease: take whichever is higher so the server always sees a
+            // non-decreasing count even if the LLM accidentally omits the field.
+            confusion_count: Math.max(
+              data.fields_extracted!.confusion_count ?? 0,
+              prev?.confusion_count ?? 0,
+            ),
           }));
         }
 

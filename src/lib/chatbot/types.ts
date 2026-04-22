@@ -46,6 +46,10 @@ export interface FieldsExtracted {
   monto: string | null;
   reclamo_previo: boolean;
   documentacion: boolean;
+  /** Running count of incoherent / contradictory / repeated user answers.
+   * Incremented by the LLM each turn it detects confusion. Never decremented.
+   * Server triggers WhatsApp fallback when this reaches 2. */
+  confusion_count: number;
 }
 
 export interface ChatApiResponse {

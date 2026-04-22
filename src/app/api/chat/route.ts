@@ -188,11 +188,13 @@ RESPONSE SCHEMA (always valid JSON, nothing outside the object):
     "fecha_hechos": "Date or period exactly as mentioned by the user, or null",
     "monto": "Amount/charge exactly as mentioned by the user, or null",
     "reclamo_previo": true | false,
-    "documentacion": true | false
+    "documentacion": true | false,
+    "confusion_count": <copy previous value; add 1 if this user turn is incoherent, contradictory, or repeats a value already captured for the same field; never decrease>
   }
 }
 
 fields_extracted: populate in EVERY response based on the FULL conversation. Use your own reading comprehension — not a fixed list.
+confusion_count: increment by 1 when the user's answer is nonsensical, self-contradicting, or identical to an already-captured value for that field. Keep the value from the previous turn otherwise — never reset to 0.
 
 ACTIONS:
 - "message": Threshold not met. Ask exactly ONE missing field.
@@ -294,11 +296,13 @@ SCHEMA DE RESPUESTA (siempre JSON válido, sin nada fuera del objeto):
     "fecha_hechos": "Fecha o período tal como lo mencionó el usuario, o null",
     "monto": "Monto/importe tal como lo mencionó el usuario, o null",
     "reclamo_previo": true | false,
-    "documentacion": true | false
+    "documentacion": true | false,
+    "confusion_count": <copiá el valor anterior; sumá 1 si la respuesta del usuario es incoherente, contradictoria consigo misma, o repite un valor que ya estaba capturado para ese campo; nunca decrementés>
   }
 }
 
 fields_extracted: completalo en TODAS las respuestas basándote en TODA la conversación. Es tu propia lectura — no una lista fija.
+confusion_count: incrementá en 1 cuando la respuesta del usuario sea incomprensible, se contradiga consigo mismo, o sea idéntica a un valor ya capturado para ese campo. Si no hay confusión, conservá el valor del turno anterior — nunca lo reinicies a 0.
 
 ACCIONES:
 - "message": Umbral no alcanzado. Pedí exactamente UN dato faltante.
@@ -378,6 +382,15 @@ IMPORTANTE: Respondé SOLO con JSON válido. Nada más.`;
 function buildFieldStatusBlock(incoming: FieldsExtracted | null, locale: string, userTurnCount: number): string {
   const has = (v: unknown) => v !== null && v !== false && v !== undefined;
 
+  // Confusion stall: user has given incoherent/contradictory/repeated answers ≥ 2 times.
+  // The LLM already counted these — trust the accumulated value and escalate immediately.
+  const confusionCount = incoming?.confusion_count ?? 0;
+  if (confusionCount >= 2) {
+    return locale === 'en'
+      ? `\n\n⚡ CONFUSION LIMIT REACHED (confusion_count=${confusionCount}): the user has given incoherent, contradictory, or repeated answers 2 or more times. Use action:"whatsapp" NOW. Text: explain kindly that you are having trouble understanding and offer to connect with a lawyer who can help directly.`
+      : `\n\n⚡ LÍMITE DE CONFUSIÓN ALCANZADO (confusion_count=${confusionCount}): el usuario dio respuestas incoherentes, contradictorias o repetidas 2 o más veces. Usá action:"whatsapp" AHORA. Text: explicar amablemente que tuviste dificultades para entender y ofrecer conectar con un abogado que pueda ayudar directamente.`;
+  }
+
   // Stall detection: 3+ user turns and still no meaningful data extracted.
   // The user may be confused, testing, or simply unable to communicate their issue.
   // Escalate to WhatsApp immediately rather than looping forever.
@@ -433,6 +446,7 @@ function buildFieldStatusBlock(incoming: FieldsExtracted | null, locale: string,
       `${has(incoming.empresa)      ? '✓' : '✗'} empresa: ${incoming.empresa ?? 'NOT YET PROVIDED'}`,
       `${has(incoming.fecha_hechos) ? '✓' : '✗'} fecha_hechos: ${incoming.fecha_hechos ?? 'NOT YET PROVIDED'}`,
       `${has(incoming.monto)        ? '✓' : '✗'} monto: ${incoming.monto ?? 'NOT YET PROVIDED'}`,
+      `confusion_count: ${confusionCount} (increment by 1 in this response if current answer is incoherent/contradictory/repeated — escalate if it would reach 2)`,
       `${incoming.reclamo_previo    ? '✓' : '✗'} reclamo_previo: ${incoming.reclamo_previo ? 'mentioned' : 'NOT YET PROVIDED'}`,
       `${incoming.documentacion     ? '✓' : '✗'} documentacion: ${incoming.documentacion ? 'mentioned' : 'NOT YET PROVIDED'}`,
       `Optional fields confirmed: ${optionalFilled}/4`,
@@ -450,8 +464,7 @@ function buildFieldStatusBlock(incoming: FieldsExtracted | null, locale: string,
     `${has(incoming.fecha_hechos) ? '✓' : '✗'} fecha_hechos: ${incoming.fecha_hechos ?? 'AÚN NO PROPORCIONADO'}`,
     `${has(incoming.monto)        ? '✓' : '✗'} monto: ${incoming.monto ?? 'AÚN NO PROPORCIONADO'}`,
     `${incoming.reclamo_previo    ? '✓' : '✗'} reclamo_previo: ${incoming.reclamo_previo ? 'mencionado' : 'AÚN NO PROPORCIONADO'}`,
-    `${incoming.documentacion     ? '✓' : '✗'} documentacion: ${incoming.documentacion ? 'mencionada' : 'AÚN NO PROPORCIONADA'}`,
-    `Campos opcionales confirmados: ${optionalFilled}/4`,
+    `${incoming.documentacion     ? '✓' : '✗'} documentacion: ${incoming.documentacion ? 'mencionada' : 'AÚN NO PROPORCIONADA'}`,    `confusion_count: ${confusionCount} (incrementá en 1 en esta respuesta si la respuesta actual es incoherente/contradictoria/repetida — derivá si llegaría a 2)`,    `Campos opcionales confirmados: ${optionalFilled}/4`,
     canDiagnose
       ? '\n⚡ UMBRAL DE DIAGNÓSTICO ALCANZADO → Establecé action:"diagnosis" AHORA MISMO. No hagas más preguntas.'
       : '\n→ Preguntá por exactamente UNO de los campos ✗ de arriba. NUNCA preguntes por campos ✓.',
@@ -484,12 +497,13 @@ export async function POST(req: NextRequest) {
 
     const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
-    // Sanitize messages: only user/assistant roles, trim and cap content
+    // Sanitize messages: only user/assistant roles, trim and cap content.
+    // Chat messages are short — 600 chars is generous and prevents bloat.
     const sanitized = messages
       .filter((m) => m.role === 'user' || m.role === 'assistant')
       .map((m) => ({
         role: m.role as 'user' | 'assistant',
-        content: String(m.content ?? '').trim().slice(0, 2000),
+        content: String(m.content ?? '').trim().slice(0, 600),
       }))
       .filter((m) => m.content.length > 0);
 
@@ -497,10 +511,19 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'No valid messages' }, { status: 400 });
     }
 
+    // Send only the last 2 messages: the bot's last question + the user's last answer.
+    // All structured state (empresa, fecha, monto, reclamo_previo, documentacion) is
+    // already persisted as key-value pairs in fieldsExtracted and injected into the
+    // system prompt via buildFieldStatusBlock. The LLM has no need for older turns.
+    const contextWindow = sanitized.slice(-2);
+
+    // Stall detection + turn counting uses the FULL history (not the window).
+    const userTurnCount = sanitized.filter((m) => m.role === 'user').length;
+
     // Server-side injection guard — first layer before the LLM call.
     // The LLM also handles injection via action:"whatsapp", but this stops
     // obvious attempts before they consume tokens.
-    const lastUserContent = sanitized.filter((m) => m.role === 'user').slice(-1)[0]?.content ?? '';
+    const lastUserContent = contextWindow.filter((m) => m.role === 'user').slice(-1)[0]?.content ?? '';
     const injection = detectInjection(lastUserContent);
     if (injection.detected) {
       return Response.json({
@@ -515,13 +538,12 @@ export async function POST(req: NextRequest) {
 
     // Append the LLM's own field summary from the previous turn to the system
     // prompt so it never re-asks questions it already answered. Pure LLM — no regex.
-    const userTurnCount = sanitized.filter((m) => m.role === 'user').length;
     const fieldStatusBlock = buildFieldStatusBlock(fieldsExtracted, locale, userTurnCount);
     const systemPrompt = buildSystemPrompt(locale) + fieldStatusBlock;
 
     const groqMessages = [
       { role: 'system', content: systemPrompt },
-      ...sanitized,
+      ...contextWindow,
     ];
 
     // callGroq accepts the model so we can fall back on TPD (daily quota) errors.
