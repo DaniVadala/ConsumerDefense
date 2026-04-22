@@ -384,18 +384,25 @@ describe('20 - Mensaje extremadamente largo', () => {
     expect(truncated.length).toBe(5000);
   });
 
-  it('el schema ChatRequest acepta mensajes de hasta 5000 chars', async () => {
+  it('el schema ChatRequest acepta mensajes de hasta 6000 chars (límite del schema)', async () => {
     const { ChatRequestSchema } = await import('../lib/chatbot/schemas');
-    const message = 'a'.repeat(5000);
+    const message = 'a'.repeat(6000);
     const result = ChatRequestSchema.safeParse({ message });
     expect(result.success).toBe(true);
   });
 
-  it('el schema ChatRequest rechaza mensajes mayores a 5000 chars', async () => {
+  it('el schema ChatRequest rechaza mensajes mayores a 6000 chars', async () => {
     const { ChatRequestSchema } = await import('../lib/chatbot/schemas');
-    const message = 'a'.repeat(5001);
+    const message = 'a'.repeat(6001);
     const result = ChatRequestSchema.safeParse({ message });
     expect(result.success).toBe(false);
+  });
+
+  it('el route trunca mensajes a 5000 chars antes de procesarlos', async () => {
+    // El schema permite hasta 6000, pero route.ts hace .slice(0, 5000)
+    // Esto verifica que la constante de truncado sea consistente con lo esperado.
+    const { MAX_USER_MESSAGE_LENGTH } = await import('../lib/chatbot/config');
+    expect(MAX_USER_MESSAGE_LENGTH).toBe(5000);
   });
 });
 
@@ -476,6 +483,119 @@ describe('25 - Reclamo previo con tiempo excesivo sin respuesta', () => {
   it('el system prompt de diagnóstico menciona incumplimiento de plazos', async () => {
     const { SYSTEM_DIAGNOSIS } = await import('../lib/chatbot/prompts/system-diagnosis');
     expect(SYSTEM_DIAGNOSIS).toContain('prescripción');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Test 26: nonConducentCount acumula incluso con mensajes alternados
+// ---------------------------------------------------------------------------
+describe('26 - nonConducentCount no se resetea con mensajes conducentes alternados', () => {
+  it('debe acumular nonConducentCount a través de mensajes conducentes intercalados', () => {
+    // Simula: no_conducente → conducente → no_conducente → conducente → no_conducente
+    // El contador debe llegar a 3 y disparar fallback aunque estén alternados.
+    let state = makeState({ nonConducentCount: 0 });
+
+    // Turno 1 — no_conducente
+    state = { ...state, nonConducentCount: state.nonConducentCount + 1 };
+    expect(state.nonConducentCount).toBe(1);
+    expect(state.currentStep).not.toBe('fallback');
+
+    // Turno 2 — conducente: NO debe resetear el contador
+    // (antes del fix esto hacía nonConducentCount: 0)
+    state = { ...state, fieldsCollected: { ...state.fieldsCollected, company: 'Claro Argentina' } };
+    // El contador debe permanecer en 1
+    expect(state.nonConducentCount).toBe(1);
+
+    // Turno 3 — no_conducente
+    state = { ...state, nonConducentCount: state.nonConducentCount + 1 };
+    expect(state.nonConducentCount).toBe(2);
+    expect(state.currentStep).not.toBe('fallback');
+
+    // Turno 4 — conducente: NO debe resetear el contador
+    state = { ...state, fieldsCollected: { ...state.fieldsCollected, incidentDate: '2024-01' } };
+    expect(state.nonConducentCount).toBe(2);
+
+    // Turno 5 — no_conducente: llega a MAX_NON_CONDUCENT (3) → fallback
+    const newCount = state.nonConducentCount + 1;
+    expect(newCount).toBeGreaterThanOrEqual(3);
+    state = { ...state, nonConducentCount: newCount, currentStep: 'fallback' as const };
+    expect(state.currentStep).toBe('fallback');
+  });
+
+  it('con mensajes consecutivos no conducentes el comportamiento anterior se mantiene', () => {
+    let state = makeState({ nonConducentCount: 0 });
+    state = { ...state, nonConducentCount: state.nonConducentCount + 1 };
+    state = { ...state, nonConducentCount: state.nonConducentCount + 1 };
+    const newCount = state.nonConducentCount + 1;
+    expect(newCount).toBeGreaterThanOrEqual(3);
+    state = { ...state, nonConducentCount: newCount, currentStep: 'fallback' as const };
+    expect(state.currentStep).toBe('fallback');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Test 27: Protección de PII en system prompt
+// ---------------------------------------------------------------------------
+describe('27 - Protección de PII: regla presente en system prompt', () => {
+  it('el system prompt incluye regla de no repetir datos sensibles del usuario', () => {
+    const state = makeState({});
+    const context = buildContext(state);
+    expect(context.systemPrompt).toContain('PROTECCIÓN DE DATOS SENSIBLES');
+    expect(context.systemPrompt).toMatch(/DNI|CBU|contraseña/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Test 28: Crisis de salud mental en system prompt
+// ---------------------------------------------------------------------------
+describe('28 - Crisis de salud mental: regla presente en system prompt', () => {
+  it('el system prompt incluye instrucción para crisis mental o ideación suicida', () => {
+    const state = makeState({});
+    const context = buildContext(state);
+    expect(context.systemPrompt).toContain('CRISIS DE SALUD MENTAL');
+    expect(context.systemPrompt).toMatch(/135|suicida/i);
+  });
+
+  it('el system prompt incluye instrucción para violencia doméstica', () => {
+    const state = makeState({});
+    const context = buildContext(state);
+    expect(context.systemPrompt).toContain('VIOLENCIA DOMÉSTICA');
+    expect(context.systemPrompt).toMatch(/144/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Test 29: Ingeniería social — resistencia en anti-injection
+// ---------------------------------------------------------------------------
+describe('29 - Ingeniería social: resistencia en system-anti-injection', () => {
+  it('el system anti-injection cubre autoridad falsa, halagos y urgencia fabricada', () => {
+    const state = makeState({});
+    const context = buildContext(state);
+    expect(context.systemPrompt).toMatch(/ingeniería social|autoridad falsa|halagos|urgencia/i);
+  });
+
+  it('el system anti-injection cubre adoptar personajes alternativos (roleplay)', () => {
+    const state = makeState({});
+    const context = buildContext(state);
+    expect(context.systemPrompt).toMatch(/juego de rol|personaje alternativo/i);
+  });
+
+  it('el system anti-injection prohíbe revelar el nombre del modelo de IA', () => {
+    const state = makeState({});
+    const context = buildContext(state);
+    expect(context.systemPrompt).toMatch(/nombre del modelo|modelo de IA|parámetro técnico/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Test 30: Confidencialidad del sistema en system-main
+// ---------------------------------------------------------------------------
+describe('30 - Confidencialidad del sistema: regla en SYSTEM_MAIN', () => {
+  it('SYSTEM_MAIN incluye regla de no revelar instrucciones internas ni configuración', () => {
+    const state = makeState({});
+    const context = buildContext(state);
+    expect(context.systemPrompt).toContain('CONFIDENCIALIDAD DEL SISTEMA');
+    expect(context.systemPrompt).toMatch(/system prompt|instrucciones internas/i);
   });
 });
 

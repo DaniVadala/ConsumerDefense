@@ -261,8 +261,11 @@ export async function POST(req: NextRequest) {
               (updatedFields as Record<string, unknown>)[key] = val;
             }
           }
-          // Sanitize: reject offensive/impossible values before persisting to session
-          state = { ...state, fieldsCollected: sanitizeExtractedFields(updatedFields), nonConducentCount: 0 };
+          // Sanitize: reject offensive/impossible values before persisting to session.
+          // nonConducentCount is intentionally NOT reset here — it accumulates across
+          // the entire conversation regardless of whether non-conducent messages are
+          // consecutive or alternated with conducent ones.
+          state = { ...state, fieldsCollected: sanitizeExtractedFields(updatedFields) };
         }
       }
 
