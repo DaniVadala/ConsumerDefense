@@ -123,27 +123,42 @@ const groqAdapter: LLMAdapter = {
 };
 
 // ---------------------------------------------------------------------------
-// Registry
+// Registry & public API
 // ---------------------------------------------------------------------------
 const ADAPTERS: Record<string, LLMAdapter> = {
   gemini: geminiAdapter,
   groq: groqAdapter,
 };
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-export function callLLM(
+/**
+ * Call the configured LLM provider. If the primary fails (quota/network),
+ * automatically falls back to Groq so the chatbot stays live.
+ *
+ * Configure via env vars — no code changes needed:
+ *   LLM_PROVIDER = gemini | groq   (default: gemini)
+ *   LLM_MODEL    = <model name>    (default: per-provider)
+ */
+export async function callLLM(
   systemPrompt: string,
   messages: ChatMessage[],
 ): Promise<LLMResult> {
   const providerName = (process.env.LLM_PROVIDER ?? 'gemini').toLowerCase();
-  const adapter = ADAPTERS[providerName] ?? geminiAdapter;
+  const primaryAdapter = ADAPTERS[providerName] ?? geminiAdapter;
 
-  const apiKey = process.env[adapter.envKey];
-  if (!apiKey) throw new Error(`${adapter.envKey} is not set`);
+  const primaryKey = process.env[primaryAdapter.envKey];
+  if (!primaryKey) throw new Error(`${primaryAdapter.envKey} is not set`);
 
-  const model = process.env.LLM_MODEL ?? adapter.defaultModel;
+  const model = process.env.LLM_MODEL ?? primaryAdapter.defaultModel;
+  const result = await primaryAdapter.call(primaryKey, model, systemPrompt, messages);
 
-  return adapter.call(apiKey, model, systemPrompt, messages);
+  // Auto-fallback to Groq when primary fails (quota exhausted, network error, etc.)
+  if (result.failed && providerName !== 'groq') {
+    const groqKey = process.env[groqAdapter.envKey];
+    if (groqKey) {
+      console.warn(`[llm-client] Primary (${providerName}) failed — falling back to Groq`);
+      return groqAdapter.call(groqKey, groqAdapter.defaultModel, systemPrompt, messages);
+    }
+  }
+
+  return result;
 }

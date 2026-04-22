@@ -93,20 +93,24 @@ cp .env.example .env.local
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROQ_API_KEY` | Yes | [Groq](https://console.groq.com/) API key |
-| `GROQ_MODEL` | No | Groq model ID. Dev default: `llama-3.1-8b-instant`. **Set `llama-3.3-70b-versatile` in Vercel for production.** |
+| `LLM_PROVIDER` | No | LLM provider: `gemini` \| `groq`. Default: `gemini` |
+| `LLM_MODEL` | No | Model name for the chosen provider. Default: `gemini-2.0-flash` / `llama-3.3-70b-versatile` |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | If using Gemini | [Google AI Studio](https://aistudio.google.com/) API key. Requires free-tier quota enabled on the project. |
+| `GROQ_API_KEY` | If using Groq | [Groq](https://console.groq.com/) API key |
 | `RESEND_API_KEY` | Yes | [Resend](https://resend.com/) API key for lead notification emails |
-| `LEAD_NOTIFY_EMAIL` | No | Email address to receive lead notifications (defaults to repo owner) |
-| `UPSTASH_REDIS_REST_URL` | Prod | [Upstash Redis](https://console.upstash.com/) REST URL for global rate limiting across serverless instances. Falls back to in-memory if not set. |
-| `UPSTASH_REDIS_REST_TOKEN` | Prod | Upstash Redis REST token (write access, not read-only) |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | Google Analytics 4 Measurement ID (`G-XXXXXXXXXX`). Analytics disabled if not set. |
+| `LEAD_NOTIFY_EMAIL` | No | Email address to receive lead notifications |
+| `UPSTASH_REDIS_REST_URL` | Prod | [Upstash Redis](https://console.upstash.com/) REST URL for global rate limiting. Falls back to in-memory if not set. |
+| `UPSTASH_REDIS_REST_TOKEN` | Prod | Upstash Redis REST token |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | Google Analytics 4 Measurement ID (`G-XXXXXXXXXX`). Disabled if not set. |
 | `NEXT_PUBLIC_SITE_URL` | No | Canonical site URL for SEO (default: `https://defensaya.com`) |
+| `MAINTENANCE_MODE` | No | Set `true` to show a "Sitio en construcción" page instead of the app. |
 
 ### External Services
 
 | Service | Purpose | Free Tier |
 |---|---|---|
-| [Groq](https://console.groq.com/) | LLM inference (Llama 3) | 100k tokens/day (dev), 500k with Dev Tier |
+| [Google AI Studio](https://aistudio.google.com/) | LLM inference — Gemini Flash (primary) | 1,500 req/day, 15 RPM (requires quota enabled) |
+| [Groq](https://console.groq.com/) | LLM inference — Llama 3 (fallback) | 100k tokens/day |
 | [Resend](https://resend.com/) | Transactional email | 3,000 emails/month |
 | [Upstash Redis](https://console.upstash.com/) | Global rate limiting | 10k requests/day |
 | [Cal.com](https://cal.com/) | Scheduling embed | Free on hobby plan |
