@@ -91,7 +91,7 @@ const es = {
     placeholderWelcome: 'Esperá a que termine el saludo y aceptá los términos abajo',
     hintText: 'Escribí tu consulta acá · gratis y confidencial',
     welcome:
-      '¡Hola! Soy DefensaYa 🤖 Los reclamos de consumo en Argentina tienen plazos — contame en pocas palabras qué te pasó (cobro, servicio, producto, banco, etc.) y en 2 minutos tenés un análisis preliminar.',
+      '¡Hola! Soy DefensaYa 🤖 Los reclamos de consumo en Argentina tienen plazos — contanos brevemente qué te pasó (cobro, servicio, producto, banco, etc.) y en 2 minutos tenés un análisis preliminar. Antes de escribir, aceptá abajo los términos y condiciones.',
     suggestions: [
       'Me cobraron de más en la tarjeta',
       'No respetan la garantía del producto',
@@ -256,7 +256,7 @@ export const translations: Record<Lang, Translations> = {
       placeholderWelcome: 'Wait for the welcome to finish, then accept the terms below',
       hintText: 'Type your question here · free & confidential',
       welcome:
-        "Hi! I'm DefensaYa 🤖 Tell me what problem you had with a company, bank or service, and I'll help you understand what you can do.",
+        "Hi! I'm DefensaYa 🤖 Consumer claims in Argentina have deadlines — tell us briefly what happened (a charge, service, product, bank, etc.) and in about 2 minutes you'll get a preliminary analysis. Before you type, accept the terms and conditions below.",
       suggestions: [
         'I was overcharged on my credit card',
         'My product warranty is not being honored',

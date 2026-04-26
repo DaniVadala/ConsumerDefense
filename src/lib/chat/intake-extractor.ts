@@ -48,7 +48,7 @@ const ExtractorObjectSchema = StepExtractionSchema.extend({
   intakeApto: z
     .boolean()
     .describe(
-      'true SOLO si el usuario describe un hecho, problema o duda vinculada a consumo (compra, servicio, banco, garantía, etc.) aunque sea breve, u orientación seria. false si el texto es solo insulto, burla, spam, puro ruido, letras al azar, o charla que no aporta ningún dato o consulta (incl. respuestas inconducentes a un orientador de consumo).',
+      'true SOLO si el relato encuadra en defensa del consumidor argentina: el usuario como consumidor o usuario de servicios frente a un proveedor de bienes/servicios (comercio, e-commerce, banco o entidad financiera en esa posición, aerolínea, telefonía/internet, servicios contratados, garantías, cargos indebidos en tarjeta/cuenta, etc.). false si el tema es AJENO a esa relación de consumo: accidente de tránsito o choque y fuga sin reclamo contra un proveedor/consumo; daños entre particulares sin vínculo de consumo; solo conflicto civil entre personas; laboral exclusivo; penal; familia; alquiler entre particulares sin intermediario de consumo; consultas que no son de consumo; o texto insultante/spam/sin sustancia. Ante duda → false.',
     ),
 });
 
@@ -75,7 +75,7 @@ REGLAS CRITICAS:
    "no se el monto" → "No sabe el monto exacto".
 8. step9: tipos de prueba que el usuario dice tener (tengo factura, guarde los mails, etc.),
    o null si no menciona nada. Resumir en una frase corta o lista separada por comas.
-9. intakeApto: ver regla arriba. Si dudas entre true y false → false (no aprobar contenido dudoso o vacío de sentido de consumo).
+9. intakeApto: ver regla arriba. Si dudas entre true y false → false.
 
 EJEMPLOS:
 
@@ -106,6 +106,13 @@ Texto: "Banco Galicia me cobro un cargo que no corresponde"
 
 Texto: "asdfasdf jaja" o "sos un inutil trol" o solo emojis/insultos
 → intakeApto: false, el resto null donde corresponda
+
+Texto: "Hace dos semanas choque y fuga, daños al auto, tengo patente del otro, la reparación sale 350 mil, no hay empresa del reclamo"
+→ intakeApto: false (no hay relación de consumo con un proveedor; es materia civil/seguros fuera de este canal)
+→ extraer igual los campos que figuren en el texto si sirven para contexto, o null
+
+Texto: "La aseguradora me rechazó el siniestro del auto y no me dan bolilla, contrato con Zurich"
+→ intakeApto: true (reclamo frente a prestadora/seguro en posición de consumidor)
 
 Devuelve SOLO el JSON valido segun el schema. Sin texto adicional.`;
 

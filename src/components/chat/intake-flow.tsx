@@ -11,7 +11,10 @@ import { IntakeForm } from '@/components/chat/IntakeForm';
 import { AiThinkingLoader } from '@/components/chat/ai-thinking-loader';
 import { DiagnosisMarkdownCard, isDiagnosisMarkdownContent } from '@/components/chat/diagnosis-markdown-card';
 import { DiagnosisWhatsAppCta } from '@/components/chat/diagnosis-whatsapp-cta';
-import { INTAKE_OR_OUTPUT_POLICY_MESSAGE } from '@/lib/chat/content-policy-messages';
+import {
+  DIAGNOSIS_OUT_OF_SCOPE_SENTINEL,
+  INTAKE_OR_OUTPUT_POLICY_MESSAGE,
+} from '@/lib/chat/content-policy-messages';
 import type { ExtractedAnswers } from '@/lib/chat/intake-extractor';
 import { mergeAnswers, buildDiagnosisPrompt, getPendingSteps } from '@/lib/chat/intake-extractor';
 
@@ -198,21 +201,26 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
         }
 
         let out = text;
-        try {
-          const mod = await fetch('/api/moderate-content', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: out }),
-          });
-          const mj = (await mod.json().catch(() => ({}))) as { flagged?: boolean };
-          if (mj.flagged) {
-            out = INTAKE_OR_OUTPUT_POLICY_MESSAGE;
-            markConversationEndedWithHeroWhatsApp('no_conducente');
-          } else {
+        if (text.trim() === DIAGNOSIS_OUT_OF_SCOPE_SENTINEL) {
+          out = INTAKE_OR_OUTPUT_POLICY_MESSAGE;
+          markConversationEndedWithHeroWhatsApp('no_conducente');
+        } else {
+          try {
+            const mod = await fetch('/api/moderate-content', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: out }),
+            });
+            const mj = (await mod.json().catch(() => ({}))) as { flagged?: boolean };
+            if (mj.flagged) {
+              out = INTAKE_OR_OUTPUT_POLICY_MESSAGE;
+              markConversationEndedWithHeroWhatsApp('no_conducente');
+            } else {
+              markConversationEnded();
+            }
+          } catch {
             markConversationEnded();
           }
-        } catch {
-          markConversationEnded();
         }
 
         setDiagnosis(out);
