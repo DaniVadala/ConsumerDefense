@@ -100,6 +100,10 @@ const es = {
     ],
     referralDisclaimer: 'Estás en fase beta. Te podemos conectar con abogados matriculados independientes de nuestra red de voluntarios. La consulta inicial es gratuita y sin obligación. DefensaYa no es un estudio jurídico; los abogados actúan por cuenta propia. En el futuro esta red pasará a ser un servicio de suscripción profesional.',
     termsTitle: 'Antes de empezar',
+    /** Resumen corto (siempre visible). El detalle completo va en acordeón. */
+    termsSummary:
+      'Orientación automática con IA: no reemplaza a un abogado ni crea relación profesional. No ingreses DNI, CUIL ni datos bancarios acá — compartilos solo con el profesional que te contacte.',
+    termsExpandLabel: 'Ver aviso legal completo',
     termsBody:
       'Este servicio brinda orientación automatizada con IA. No constituye asesoramiento legal ni crea relación abogado-cliente.\n\n' +
       'Tu privacidad: los datos del chat se procesan según la Ley 25.326 y no se almacenan permanentemente. No ingreses DNI, CUIL ni datos bancarios en este chat — compartilos directamente con el profesional que te contacte.\n\n' +
@@ -122,6 +126,42 @@ const es = {
     docOtherCancel: 'Volver a las opciones',
     /** Chips del tool proponerOpcionesIntake (multi) */
     pillsDone: 'Listo',
+    intakeFreeTitle: 'Contanos qué pasó',
+    intakeFreeSubtitle:
+      'Describí tu caso con el detalle que tengas. Cuanto más informes, menos preguntas adicionales necesitaremos.',
+    intakeFreePlaceholder:
+      'Ej: Mercado Libre no me entregó un paquete que compré en marzo. Reclamé por mail pero no me responden. Tengo la factura y los mails. El producto costó $80.000...',
+    intakeFreeSend: 'Enviar',
+    intakeFreeHint: 'Podés escribir todo junto — detectamos automáticamente los datos.',
+    intakeFreeMinError: 'Contanos un poco más sobre tu caso.',
+    intakeFreeKeyHintMac: 'Cmd+Enter para enviar',
+    intakeFreeKeyHintWin: 'Ctrl+Enter para enviar',
+    intakeComposerHint: 'Enter para enviar · Mayús+Enter para nueva línea',
+    intakeSteps: {
+      step1: 'Descripción del hecho',
+      step2: 'Empresa o proveedor',
+      step3: 'Fecha o período',
+      step4: 'Reclamo previo a la empresa',
+      step5: 'Medios del reclamo',
+      step6: 'Respuesta de la empresa',
+      step7: 'Provincia',
+      step8: 'Monto',
+      step9: 'Pruebas o constancias',
+    },
+    followupIntro:
+      'Gracias por el detalle. En lenguaje simple, esto es lo que tomamos de tu relato hasta ahora:',
+    followupNothingDetected:
+      'Todavía no pudimos extraer datos concretos. Contanos un poco más en el mensaje de abajo (fechas, empresa, qué pasó, etc.).',
+    followupMissingLead: 'Para poder orientarte bien, nos falta:',
+    followupMissingOne: 'un dato más',
+    followupMissingMany: '{count} datos más',
+    followupInvite:
+      'Respondé con lo que puedas completar o corregí si algo no coincide. En el siguiente paso vas a ver el resumen en formato lista antes de seguir.',
+    followupPlaceholder: 'Completá o corregí acá… (fechas, empresa, monto, si ya reclamaste, etc.)',
+    followupSend: 'Enviar',
+    followupEmptyError: 'Escribí un mensaje para continuar.',
+    followupAnalyzing: 'Procesando tu respuesta…',
+    followupMergeError: 'No pudimos procesar tu mensaje. Intentá de nuevo.',
   },
   about: {
     pill: 'Quiénes somos',
@@ -265,6 +305,9 @@ export const translations: Record<Lang, Translations> = {
       ],
       referralDisclaimer: 'You are in beta. We can connect you with independent, registered attorneys from our volunteer network. The initial consultation is free and with no obligation. DefensaYa is not a law firm; attorneys act on their own behalf. In the future, this network will become a professional subscription service.',
       termsTitle: 'Before we start',
+      termsSummary:
+        'Automated AI guidance — not a substitute for a lawyer and no attorney–client relationship. Do not enter national ID, tax ID, or bank details here; share those only with the professional who contacts you.',
+      termsExpandLabel: 'Full legal notice',
       termsBody:
         'This service provides automated guidance with AI. It does not constitute legal advice nor create an attorney–client relationship.\n\n' +
         'Your privacy: chat data is processed in line with Law 25.326 (Argentina) and is not stored permanently. Do not enter national ID, tax ID, or bank details in this chat — share those directly with the professional who contacts you.\n\n' +
@@ -285,6 +328,41 @@ export const translations: Record<Lang, Translations> = {
       docOtherSubmit: 'Send',
       docOtherCancel: 'Back to options',
       pillsDone: 'Done',
+      intakeFreeTitle: 'Tell us what happened',
+      intakeFreeSubtitle:
+        'Describe your case with as much detail as you have. The more you share, the fewer follow-up questions we need.',
+      intakeFreePlaceholder:
+        'E.g. An online store never delivered a package I bought in March. I complained by email but got no reply. I have the invoice and emails. The item was about $80,000...',
+      intakeFreeSend: 'Send',
+      intakeFreeHint: 'You can write everything at once — we detect the data automatically.',
+      intakeFreeMinError: 'Tell us a bit more about your case.',
+      intakeFreeKeyHintMac: 'Cmd+Enter to send',
+      intakeFreeKeyHintWin: 'Ctrl+Enter to send',
+      intakeComposerHint: 'Enter to send · Shift+Enter for a new line',
+      intakeSteps: {
+        step1: 'Description of what happened',
+        step2: 'Company or provider',
+        step3: 'Date or period',
+        step4: 'Prior complaint to the company',
+        step5: 'How you complained',
+        step6: "The company's response",
+        step7: 'Province',
+        step8: 'Amount',
+        step9: 'Evidence or documents',
+      },
+      followupIntro: 'Thanks for the detail. In plain language, here is what we took from your story so far:',
+      followupNothingDetected:
+        "We couldn't pull concrete facts yet. Add a bit more below (dates, company, what happened, etc.).",
+      followupMissingLead: 'To guide you properly, we still need:',
+      followupMissingOne: 'one more detail',
+      followupMissingMany: '{count} more details',
+      followupInvite:
+        "Reply with anything you can add, or correct us if something's wrong. Next you'll see a checklist summary before continuing.",
+      followupPlaceholder: 'Add or correct here… (dates, company, amount, whether you already complained, etc.)',
+      followupSend: 'Send',
+      followupEmptyError: 'Write a message to continue.',
+      followupAnalyzing: 'Processing your reply…',
+      followupMergeError: "We couldn't process your message. Please try again.",
     },
     about: {
       pill: 'Who we are',

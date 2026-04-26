@@ -143,6 +143,120 @@ export async function extractFromFreeText(text: string): Promise<{
 }
 
 // ---------------------------------------------------------------------------
+// Segundo mensaje del intake: merge con CONTEXTO del caso (no revalidar relato entero)
+// ---------------------------------------------------------------------------
+
+const FollowupMergeObjectSchema = StepExtractionSchema.extend({
+  conducente: z
+    .boolean()
+    .describe(
+      'true si el mensaje aporta o corrige datos útiles del MISMO reclamo de consumo ya en curso (incluso una frase corta: fechas, empresa, monto, si reclamó, provincia, pruebas, etc.). false solo ante spam, insultos, tema claramente ajeno al caso, charla sin hechos, o pedidos fuera de defensa del consumidor.',
+    ),
+});
+
+const FOLLOWUP_MERGE_SYSTEM = `Sos el extractor del mismo formulario de defensa del consumidor (Argentina), en modo ACLARACIÓN.
+
+Ya tenés datos extraídos del relato inicial. El usuario envía un MENSAJE NUEVO, a menudo corto, para completar o corregir el caso.
+
+REGLAS:
+1) conducente: true si el mensaje sirve para este reclamo (datos nuevos o correcciones), aunque sea muy breve ("fue en abril 2025", "la empresa es Frávega", "todavía no reclamé", "fueron 80 mil pesos"). false solo si es ruido, insulto, tema no relacionado, o no aporta nada al caso.
+2) NO uses el criterio de "relato completo" del primer paso: acá los fragmentos válidos cuentan.
+3) Para step1..step9: devolvé valor SOLO si el mensaje nuevo lo menciona o corrige EXPLÍCITAMENTE. Si no aplica → null (al fusionar se conserva lo anterior).
+4) Mismas reglas que el extractor principal: step5/step6 solo si step4 sería "si"; si el mensaje solo aclara fecha y nada más, solo step3 lleva texto.
+5) Fechas relativas o parciales ("abril 2025", "hace dos meses") → step3 con el texto normalizado claro.
+6) No inventes datos que el usuario no dijo.
+
+Ejemplo: datos actuales con step3 null. Mensaje: "esto ocurrió en abril del 2025" → conducente true, step3 "Abril 2025", resto null.
+Ejemplo: mensaje "hola" → conducente false, todo null.
+Ejemplo: mensaje sobre política o trabajo sin vínculo con el caso → conducente false.`;
+
+function normalizeAfterStep4(answers: ExtractedAnswers): ExtractedAnswers {
+  if (answers.step4 !== 'si') {
+    return { ...answers, step5: null, step6: null };
+  }
+  return answers;
+}
+
+function applyExtractionDelta(current: ExtractedAnswers, delta: ExtractedAnswers): ExtractedAnswers {
+  const keys: (keyof ExtractedAnswers)[] = [
+    'step1',
+    'step2',
+    'step3',
+    'step4',
+    'step5',
+    'step6',
+    'step7',
+    'step8',
+    'step9',
+  ];
+  const merged: ExtractedAnswers = { ...current };
+  for (const k of keys) {
+    const v = delta[k];
+    if (v !== null && v !== undefined) {
+      (merged as Record<keyof ExtractedAnswers, string | null>)[k] = v as string | null;
+    }
+  }
+  return normalizeAfterStep4(merged);
+}
+
+function answersEqual(a: ExtractedAnswers, b: ExtractedAnswers): boolean {
+  return (
+    a.step1 === b.step1 &&
+    a.step2 === b.step2 &&
+    a.step3 === b.step3 &&
+    a.step4 === b.step4 &&
+    a.step5 === b.step5 &&
+    a.step6 === b.step6 &&
+    a.step7 === b.step7 &&
+    a.step8 === b.step8 &&
+    a.step9 === b.step9
+  );
+}
+
+export type FollowupMergeResult =
+  | { ok: true; merged: ExtractedAnswers }
+  | { ok: false; reason: 'not_apto' | 'no_delta' };
+
+/**
+ * Fusiona un mensaje de aclaración viendo el caso ya extraído. No reutiliza intakeApto sobre el texto aislado
+ * (los fragmentos cortos fallarían); usa conducente contextual.
+ */
+export async function mergeFollowupIntoAnswers(
+  current: ExtractedAnswers,
+  followupText: string,
+): Promise<FollowupMergeResult> {
+  const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  const snapshot = `1. Descripción: ${current.step1 ?? 'null'}
+2. Empresa: ${current.step2 ?? 'null'}
+3. Fecha: ${current.step3 ?? 'null'}
+4. Reclamo previo: ${current.step4 ?? 'null'}
+5. Medios: ${current.step5 ?? 'null'}
+6. Respuesta empresa: ${current.step6 ?? 'null'}
+7. Provincia: ${current.step7 ?? 'null'}
+8. Monto: ${current.step8 ?? 'null'}
+9. Pruebas: ${current.step9 ?? 'null'}`;
+
+  const { object } = await generateObject({
+    model: openai(extractModelId()),
+    schema: FollowupMergeObjectSchema,
+    system: FOLLOWUP_MERGE_SYSTEM,
+    prompt: `Datos actuales del caso:\n${snapshot}\n\nMensaje nuevo del usuario:\n"${followupText}"`,
+    temperature: 0,
+  });
+
+  const { conducente, ...delta } = object;
+  if (!conducente) {
+    return { ok: false, reason: 'not_apto' };
+  }
+  const merged = applyExtractionDelta(current, delta);
+  if (answersEqual(merged, current)) {
+    return { ok: false, reason: 'no_delta' };
+  }
+  return { ok: true, merged };
+}
+
+// ---------------------------------------------------------------------------
 // Helper: calcular steps faltantes
 // ---------------------------------------------------------------------------
 
@@ -208,4 +322,56 @@ export function buildDiagnosisPrompt(answers: ExtractedAnswers): string {
 9. Pruebas o documentación disponible: ${answers.step9 ?? 'No informado'}
 
 Emitir el diagnóstico completo según el formato del system prompt.`;
+}
+
+// ---------------------------------------------------------------------------
+// Mensaje prefijado para WhatsApp (post-diagnóstico)
+// ---------------------------------------------------------------------------
+
+export const WHATSAPP_HANDOFF_MAX_CHARS = 1700;
+
+function formatStep4ForWhatsApp(step4: ExtractedAnswers['step4']): string {
+  if (step4 === 'si') return 'Sí';
+  if (step4 === 'no') return 'No';
+  if (step4 === 'no_recuerda') return 'No recuerda';
+  return '';
+}
+
+/**
+ * Relato y datos estructurados, sin saludo ni pie (para combinar con otros textos).
+ */
+export function buildWhatsAppCaseFactsBlock(answers: ExtractedAnswers): string {
+  const narrative = answers.step1?.trim();
+  const head: string[] = [];
+  if (narrative) {
+    head.push(`"${narrative}"`, '');
+  }
+  const detail: string[] = [];
+  if (answers.step2?.trim()) detail.push(`Empresa o proveedor: ${answers.step2.trim()}`);
+  if (answers.step3?.trim()) detail.push(`Fecha o período: ${answers.step3.trim()}`);
+  const s4 = formatStep4ForWhatsApp(answers.step4);
+  if (s4) detail.push(`Reclamo previo a la empresa: ${s4}`);
+  if (answers.step4 === 'si' && answers.step5?.trim()) detail.push(`Medios del reclamo: ${answers.step5.trim()}`);
+  if (answers.step4 === 'si' && answers.step6?.trim()) detail.push(`Respuesta de la empresa: ${answers.step6.trim()}`);
+  if (answers.step7?.trim()) detail.push(`Provincia: ${answers.step7.trim()}`);
+  if (answers.step8?.trim()) detail.push(`Monto: ${answers.step8.trim()}`);
+  if (answers.step9?.trim()) detail.push(`Pruebas o documentación: ${answers.step9.trim()}`);
+
+  const body = [...head, detail.join('\n')].join('\n').trimEnd();
+  if (!body) return '(Sin datos cargados en el chat.)';
+  return body;
+}
+
+/**
+ * Mensaje completo para wa.me tras el análisis: situación + datos + pie.
+ */
+export function buildWhatsAppHandoffMessage(answers: ExtractedAnswers): string {
+  const intro = 'Hola DefensaYa. Necesito asesoramiento con esta situación:\n\n';
+  const body = buildWhatsAppCaseFactsBlock(answers);
+  const footer = '\n\n— Ya completé el análisis preliminar en DefensaYa.';
+  let full = intro + body + footer;
+  if (full.length > WHATSAPP_HANDOFF_MAX_CHARS) {
+    full = full.slice(0, WHATSAPP_HANDOFF_MAX_CHARS - 1) + '…';
+  }
+  return full;
 }

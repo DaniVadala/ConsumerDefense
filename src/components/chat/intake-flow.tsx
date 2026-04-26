@@ -6,6 +6,7 @@ import { useLocale } from '@/lib/i18n/context';
 import { useChatAvailability } from '@/lib/chat-availability-context';
 import { trackChatMessageSent } from '@/lib/analytics';
 import { FreeTextStep } from '@/components/chat/FreeTextStep';
+import { IntakeFollowupStep } from '@/components/chat/IntakeFollowupStep';
 import { ExtractedSummary } from '@/components/chat/ExtractedSummary';
 import { IntakeForm } from '@/components/chat/IntakeForm';
 import { AiThinkingLoader } from '@/components/chat/ai-thinking-loader';
@@ -16,12 +17,33 @@ import {
   INTAKE_OR_OUTPUT_POLICY_MESSAGE,
 } from '@/lib/chat/content-policy-messages';
 import type { ExtractedAnswers } from '@/lib/chat/intake-extractor';
-import { mergeAnswers, buildDiagnosisPrompt, getPendingSteps } from '@/lib/chat/intake-extractor';
+import {
+  mergeAnswers,
+  buildDiagnosisPrompt,
+  getPendingSteps,
+  buildWhatsAppHandoffMessage,
+  buildWhatsAppCaseFactsBlock,
+  WHATSAPP_HANDOFF_MAX_CHARS,
+} from '@/lib/chat/intake-extractor';
 
 const WA_MESSAGE_NO_CONDUENTE =
   'Hola DefensaYa, me costó explicar mi problema en el chat. ¿Pueden ayudarme con mi reclamo?';
 
-type Phase = 'summary' | 'form' | 'generating' | 'diagnosis' | 'blocked';
+function postDiagnosisWhatsAppMessage(
+  diagnosis: string,
+  caseSnapshot: ExtractedAnswers | null,
+): string | undefined {
+  if (diagnosis === INTAKE_OR_OUTPUT_POLICY_MESSAGE) {
+    if (!caseSnapshot) return WA_MESSAGE_NO_CONDUENTE;
+    const combined = `${WA_MESSAGE_NO_CONDUENTE}\n\n${buildWhatsAppCaseFactsBlock(caseSnapshot)}`;
+    return combined.length > WHATSAPP_HANDOFF_MAX_CHARS
+      ? `${combined.slice(0, WHATSAPP_HANDOFF_MAX_CHARS - 1)}…`
+      : combined;
+  }
+  return caseSnapshot ? buildWhatsAppHandoffMessage(caseSnapshot) : undefined;
+}
+
+type Phase = 'followup' | 'summary' | 'form' | 'generating' | 'diagnosis' | 'blocked';
 
 const EMPTY_EXTRACTED: ExtractedAnswers = {
   step1: null,
@@ -110,8 +132,13 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
   const [postExtractPhase, setPostExtractPhase] = useState<Phase | null>(null);
   const [extracted, setExtracted] = useState<ExtractedAnswers | null>(null);
   const [diagnosis, setDiagnosis] = useState('');
+  /** Datos finales del intake (post-formulario) para prefijar WhatsApp con el relato. */
+  const [caseSnapshot, setCaseSnapshot] = useState<ExtractedAnswers | null>(null);
   const [flowError, setFlowError] = useState<string | null>(null);
   const [policyMessage, setPolicyMessage] = useState<string | null>(null);
+  const [relatoSnapshot, setRelatoSnapshot] = useState('');
+  const [isFollowupLoading, setIsFollowupLoading] = useState(false);
+  const [followupInlineError, setFollowupInlineError] = useState<string | null>(null);
 
   const intakeReady = welcomeDone && termsAccepted;
 
@@ -121,7 +148,10 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
       setFlowError(null);
       setPostExtractPhase(null);
       setExtracted(null);
+      setCaseSnapshot(null);
       setPolicyMessage(null);
+      setRelatoSnapshot('');
+      setFollowupInlineError(null);
 
       try {
         const res = await fetch('/api/intake-extract', {
@@ -151,7 +181,13 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
 
         if (data.extracted) {
           setExtracted(data.extracted);
-          setPostExtractPhase('summary');
+          const pending = getPendingSteps(data.extracted);
+          if (pending.length === 0) {
+            setPostExtractPhase('summary');
+          } else {
+            setRelatoSnapshot(text.trim());
+            setPostExtractPhase('followup');
+          }
         } else {
           setExtracted(EMPTY_EXTRACTED);
           setPostExtractPhase('summary');
@@ -165,6 +201,53 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
       }
     },
     [markConversationEndedWithHeroWhatsApp],
+  );
+
+  const handleFollowupSubmit = useCallback(
+    async (msg: string): Promise<boolean> => {
+      if (!extracted) return false;
+      setFollowupInlineError(null);
+      setIsFollowupLoading(true);
+      try {
+        const res = await fetch('/api/intake-followup-merge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ current: extracted, text: msg }),
+        });
+
+        const data = (await res.json().catch(() => ({}))) as {
+          blocked?: boolean;
+          message?: string;
+          extracted?: ExtractedAnswers;
+          error?: string;
+        };
+
+        if (res.ok && data.blocked && typeof data.message === 'string') {
+          setPolicyMessage(data.message);
+          setPostExtractPhase('blocked');
+          markConversationEndedWithHeroWhatsApp('no_conducente');
+          return false;
+        }
+
+        if (res.ok && data.extracted) {
+          setExtracted(data.extracted);
+          setPostExtractPhase('summary');
+          return true;
+        }
+
+        const errMsg =
+          typeof data.error === 'string' && data.error ? data.error : t.chat.followupMergeError;
+        setFollowupInlineError(errMsg);
+        return false;
+      } catch (e) {
+        console.error('Error en follow-up del intake:', e);
+        setFollowupInlineError(t.chat.followupMergeError);
+        return false;
+      } finally {
+        setIsFollowupLoading(false);
+      }
+    },
+    [extracted, markConversationEndedWithHeroWhatsApp, t],
   );
 
   const generateDiagnosis = useCallback(
@@ -223,6 +306,7 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
           }
         }
 
+        setCaseSnapshot(finalAnswers);
         setDiagnosis(out);
         setPostExtractPhase('diagnosis');
         trackChatMessageSent(1);
@@ -303,7 +387,10 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
         className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5"
         style={{ minHeight: 0, background: 'var(--slate-2)' }}
       >
-        {flowError && postExtractPhase !== 'diagnosis' && postExtractPhase !== 'blocked' && (
+        {flowError &&
+          postExtractPhase !== 'diagnosis' &&
+          postExtractPhase !== 'blocked' &&
+          postExtractPhase !== 'followup' && (
           <div
             className="mb-4 rounded-xl border p-3 text-sm sm:text-xs leading-relaxed"
             style={{ background: '#fef2f2', borderColor: '#fecaca', color: '#991b1b' }}
@@ -330,21 +417,27 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
 
             {welcomeDone && !termsAccepted && (
               <div
-                className="mx-1 mb-4 rounded-xl border p-3 text-sm sm:text-xs leading-relaxed"
-                style={{ background: '#fefce8', borderColor: '#fde68a', color: '#78350f' }}
+                className="mx-1 mb-4 rounded-2xl border bg-white px-4 py-3 shadow-sm text-sm sm:text-xs leading-relaxed"
+                style={{ borderColor: 'var(--slate-4)', color: 'var(--slate-12)' }}
               >
-                <p className="font-semibold mb-1">{t.chat.termsTitle}</p>
-                <p className="mb-2 whitespace-pre-line" style={{ color: '#92400e' }}>
-                  {t.chat.termsBody}
-                </p>
+                <p className="font-semibold mb-2 text-slate-900">{t.chat.termsTitle}</p>
+                <p className="mb-3 text-slate-600">{t.chat.termsSummary}</p>
                 <button
                   type="button"
                   onClick={() => setTermsAccepted(true)}
-                  className="px-4 py-1.5 rounded-full text-sm sm:text-xs font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
+                  className="mb-2 w-full sm:w-auto px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
                   style={{ background: '#059669' }}
                 >
                   {t.chat.termsButton}
                 </button>
+                <details className="group rounded-lg border border-slate-200/90 bg-slate-50/80 px-3 py-2 text-slate-600">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-emerald-700 hover:text-emerald-800 [&::-webkit-details-marker]:hidden">
+                    <span className="underline-offset-2 hover:underline">{t.chat.termsExpandLabel}</span>
+                  </summary>
+                  <p className="mt-2 border-t border-slate-200/90 pt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600">
+                    {t.chat.termsBody}
+                  </p>
+                </details>
               </div>
             )}
 
@@ -353,6 +446,22 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
         )}
 
         {isExtracting && <AiThinkingLoader label="Analizando tu relato…" />}
+
+        {postExtractPhase === 'followup' && extracted && relatoSnapshot && !isExtracting && (
+          <>
+            {isFollowupLoading ? (
+              <AiThinkingLoader label={t.chat.followupAnalyzing} />
+            ) : (
+              <IntakeFollowupStep
+                extracted={extracted}
+                userRelato={relatoSnapshot}
+                onSubmit={handleFollowupSubmit}
+                isLoading={isFollowupLoading}
+                inlineError={followupInlineError}
+              />
+            )}
+          </>
+        )}
 
         {postExtractPhase === 'summary' && extracted && !isExtracting && (
           <ExtractedSummary
@@ -402,7 +511,7 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
             )}
             <DiagnosisWhatsAppCta
               source="chat_post_diagnosis"
-              message={diagnosis === INTAKE_OR_OUTPUT_POLICY_MESSAGE ? WA_MESSAGE_NO_CONDUENTE : undefined}
+              message={postDiagnosisWhatsAppMessage(diagnosis, caseSnapshot)}
               label={diagnosis === INTAKE_OR_OUTPUT_POLICY_MESSAGE ? 'Contactar por WhatsApp' : 'Hablar con un especialista'}
             />
           </div>
