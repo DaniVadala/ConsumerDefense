@@ -36,10 +36,10 @@ export function ExtractedSummary({ extracted, pendingSteps, onContinue }: Extrac
     <div className="flex flex-col gap-4 w-full max-w-lg mx-auto px-1 py-2">
       {completedSteps.length > 0 && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col gap-2">
-          <p className="text-sm font-medium text-green-800">✅ Detectamos estos datos en tu relato:</p>
+          <p className="text-base sm:text-sm font-medium text-green-800">✅ Detectamos estos datos en tu relato:</p>
           <ul className="flex flex-col gap-1">
             {completedSteps.map((key) => (
-              <li key={key} className="text-sm text-green-700">
+              <li key={key} className="text-base sm:text-sm text-green-700">
                 <span className="font-medium">{STEP_LABELS[key]}:</span>{' '}
                 {key === 'step4' ? formatStep4(extracted.step4) : String(extracted[key])}
               </li>
@@ -50,7 +50,7 @@ export function ExtractedSummary({ extracted, pendingSteps, onContinue }: Extrac
 
       {pendingSteps.length > 0 ? (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-gray-600">
+          <p className="text-base sm:text-sm text-gray-600">
             Solo{' '}
             {pendingSteps.length === 1
               ? 'necesitamos un dato más'
@@ -60,7 +60,7 @@ export function ExtractedSummary({ extracted, pendingSteps, onContinue }: Extrac
           <button
             type="button"
             onClick={onContinue}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-sm
+            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-base sm:text-sm
               font-medium hover:bg-blue-700 transition-colors"
           >
             Completar →
@@ -68,11 +68,11 @@ export function ExtractedSummary({ extracted, pendingSteps, onContinue }: Extrac
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-gray-600">Tenemos toda la información necesaria para tu análisis.</p>
+          <p className="text-base sm:text-sm text-gray-600">Tenemos toda la información necesaria para tu análisis.</p>
           <button
             type="button"
             onClick={onContinue}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-sm
+            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-base sm:text-sm
               font-medium hover:bg-blue-700 transition-colors"
           >
             Ver análisis →

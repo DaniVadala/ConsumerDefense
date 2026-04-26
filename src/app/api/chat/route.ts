@@ -18,12 +18,13 @@ import { z } from 'zod';
 import { loadChatInstructions } from '@/lib/prompts/load-chat-instructions';
 import { buildSystemPromptWithInstructions } from '@/lib/chat/reference-date';
 import { sanitizeUiMessages, sanitizeUserInput } from '@/lib/chat/sanitize-user-input';
-import {
-  checkRateLimit,
-  checkOutcomeLimits,
-  incrementConversationCount,
-  extractClientIp,
-} from '@/lib/rate-limiter';
+/* TEMP production testing: re-enable before launch — import checkRateLimit, checkOutcomeLimits, incrementConversationCount, extractClientIp from '@/lib/rate-limiter' */
+// import {
+//   checkRateLimit,
+//   checkOutcomeLimits,
+//   incrementConversationCount,
+//   extractClientIp,
+// } from '@/lib/rate-limiter';
 import {
   CHAT_TEMPERATURE,
   DEFAULT_MODEL,
@@ -186,11 +187,11 @@ export async function POST(req: NextRequest) {
       return legacyJson({ error: 'Solicitud inválida' }, 400);
     }
 
+    /* TEMP: daily / outcome conversation limits off for production testing — restore import + block below before launch.
     const clientIp = extractClientIp(req);
     const isNewConversation = isNewFormat
       ? (rawBody as { messages?: unknown[] }).messages?.length === 1
       : !(rawBody as { sessionId?: string }).sessionId;
-
     if (isNewConversation) {
       const ol = await checkOutcomeLimits(clientIp, bypassToken);
       if (ol.limited) {
@@ -231,6 +232,7 @@ export async function POST(req: NextRequest) {
     if (isNewConversation) {
       await incrementConversationCount(clientIp, bypassToken);
     }
+    */
 
     const apiKey = process.env.OPENAI_API_KEY ?? '';
     if (!apiKey) {

@@ -279,15 +279,15 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
           <Shield className="w-5 h-5 text-white" />
         </div>
         <div>
-          <p className="font-bold text-sm leading-tight">DefensaYa</p>
-          <p className="text-white/80 text-xs">{t.chat.subtitle}</p>
+          <p className="font-bold text-base sm:text-sm leading-tight">DefensaYa</p>
+          <p className="text-white/80 text-sm sm:text-xs">{t.chat.subtitle}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 rounded-full px-3 py-1" style={{ background: 'rgba(255,255,255,0.15)' }}>
           <div
             className="w-2.5 h-2.5 rounded-full"
             style={{ background: '#4ade80', animation: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite' }}
           />
-          <span className="text-xs text-white/90 font-medium">{t.chat.online}</span>
+          <span className="text-sm sm:text-xs text-white/90 font-medium">{t.chat.online}</span>
         </div>
       </div>
 
@@ -297,7 +297,7 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
       >
         {flowError && postExtractPhase !== 'diagnosis' && postExtractPhase !== 'blocked' && (
           <div
-            className="mb-4 rounded-xl border p-3 text-xs leading-relaxed"
+            className="mb-4 rounded-xl border p-3 text-sm sm:text-xs leading-relaxed"
             style={{ background: '#fef2f2', borderColor: '#fecaca', color: '#991b1b' }}
             role="alert"
           >
@@ -310,7 +310,7 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
             <div className="flex items-end gap-2 mb-4">
               <BotAvatar />
               <div
-                className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 text-sm max-w-[85%] leading-relaxed shadow-sm"
+                className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 text-base sm:text-sm max-w-[85%] leading-relaxed shadow-sm"
                 style={{ border: '1px solid var(--slate-4)', color: 'var(--slate-12)' }}
               >
                 {welcomeText}
@@ -322,7 +322,7 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
 
             {welcomeDone && !termsAccepted && (
               <div
-                className="mx-1 mb-4 rounded-xl border p-3 text-xs leading-relaxed"
+                className="mx-1 mb-4 rounded-xl border p-3 text-sm sm:text-xs leading-relaxed"
                 style={{ background: '#fefce8', borderColor: '#fde68a', color: '#78350f' }}
               >
                 <p className="font-semibold mb-1">{t.chat.termsTitle}</p>
@@ -332,7 +332,7 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
                 <button
                   type="button"
                   onClick={() => setTermsAccepted(true)}
-                  className="px-4 py-1.5 rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
+                  className="px-4 py-1.5 rounded-full text-sm sm:text-xs font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
                   style={{ background: '#059669' }}
                 >
                   {t.chat.termsButton}
@@ -365,7 +365,7 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
 
         {postExtractPhase === 'blocked' && policyMessage && (
           <div className="max-w-lg mx-auto flex flex-col gap-2">
-            <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--slate-12)' }}>
+            <p className="text-base sm:text-sm text-slate-800 leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--slate-12)' }}>
               {policyMessage}
             </p>
             <DiagnosisWhatsAppCta
@@ -379,14 +379,14 @@ export function IntakeFlow({ sessionId, bypassToken }: IntakeFlowProps) {
         {postExtractPhase === 'diagnosis' && diagnosis && (
           <div className="max-w-lg mx-auto flex flex-col">
             {diagnosis === INTAKE_OR_OUTPUT_POLICY_MESSAGE ? (
-              <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap mb-1" style={{ color: 'var(--slate-12)' }}>
+              <p className="text-base sm:text-sm text-slate-800 leading-relaxed whitespace-pre-wrap mb-1" style={{ color: 'var(--slate-12)' }}>
                 {diagnosis}
               </p>
             ) : isDiagnosisMarkdownContent(diagnosis) ? (
               <DiagnosisMarkdownCard markdown={diagnosis} />
             ) : (
               <pre
-                className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed"
+                className="whitespace-pre-wrap font-sans text-base sm:text-sm text-gray-800 leading-relaxed"
                 style={{ color: 'var(--slate-12)' }}
               >
                 {diagnosis}

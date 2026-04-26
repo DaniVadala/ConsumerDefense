@@ -74,7 +74,7 @@ export function AiThinkingLoader({ label }: AiThinkingLoaderProps) {
           className="absolute h-1.5 w-1.5 rounded-full bg-emerald-600/35 shadow-[0_0_10px_rgba(5,150,105,0.4)] [animation:loader-core_1.8s_ease-in-out_infinite]"
         />
       </div>
-      <p className="text-sm text-center text-slate-500 max-w-[260px] leading-snug">
+      <p className="text-base sm:text-sm text-center text-slate-500 max-w-[260px] leading-snug">
         {label}
       </p>
       <style>

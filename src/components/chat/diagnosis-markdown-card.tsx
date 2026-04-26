@@ -17,13 +17,13 @@ export function isDiagnosisMarkdownContent(text: string): boolean {
 
 const mdComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="text-lg font-bold tracking-tight text-slate-12 mb-3 mt-0 first:mt-0" style={{ color: 'var(--slate-12)' }}>
+    <h1 className="text-xl sm:text-lg font-bold tracking-tight text-slate-12 mb-3 mt-0 first:mt-0" style={{ color: 'var(--slate-12)' }}>
       {children}
     </h1>
   ),
   h2: ({ children }) => (
     <h2
-      className="text-base font-bold tracking-tight mt-6 mb-2 pb-2 border-b first:mt-0 flex flex-wrap items-center gap-2"
+      className="text-lg sm:text-base font-bold tracking-tight mt-6 mb-2 pb-2 border-b first:mt-0 flex flex-wrap items-center gap-2"
       style={{ borderColor: 'var(--green-4)', color: 'var(--slate-12)' }}
     >
       {children}
@@ -31,14 +31,14 @@ const mdComponents: Components = {
   ),
   h3: ({ children }) => (
     <h3
-      className="text-sm font-semibold mt-5 mb-2 flex flex-wrap items-center gap-1.5"
+      className="text-base sm:text-sm font-semibold mt-5 mb-2 flex flex-wrap items-center gap-1.5"
       style={{ color: 'var(--slate-12)' }}
     >
       {children}
     </h3>
   ),
   p: ({ children }) => (
-    <p className="text-sm leading-relaxed mb-3 last:mb-0" style={{ color: 'var(--slate-12)' }}>
+    <p className="text-base sm:text-sm leading-relaxed mb-3 last:mb-0" style={{ color: 'var(--slate-12)' }}>
       {children}
     </p>
   ),
@@ -51,13 +51,13 @@ const mdComponents: Components = {
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="my-2 ml-4 list-decimal space-y-2 pl-1 text-sm marker:font-medium" style={{ color: 'var(--slate-12)' }}>
+    <ol className="my-2 ml-4 list-decimal space-y-2 pl-1 text-base sm:text-sm marker:font-medium" style={{ color: 'var(--slate-12)' }}>
       {children}
     </ol>
   ),
   li: ({ children }) => (
     <li
-      className="text-sm leading-relaxed pl-2 border-l-2 -ml-0.5"
+      className="text-base sm:text-sm leading-relaxed pl-2 border-l-2 -ml-0.5"
       style={{ borderColor: 'var(--green-4)' }}
     >
       {children}
@@ -65,13 +65,13 @@ const mdComponents: Components = {
   ),
   strong: ({ children }) => <strong className="font-semibold" style={{ color: 'var(--slate-12)' }}>{children}</strong>,
   em: ({ children }) => (
-    <em className="italic text-[13px] sm:text-sm leading-relaxed" style={{ color: 'var(--slate-11)' }}>
+    <em className="italic text-base sm:text-sm leading-relaxed" style={{ color: 'var(--slate-11)' }}>
       {children}
     </em>
   ),
   blockquote: ({ children }) => (
     <blockquote
-      className="my-3 border-l-4 pl-3 py-1 text-[13px] rounded-r-md"
+      className="my-3 border-l-4 pl-3 py-1 text-sm sm:text-[13px] rounded-r-md"
       style={{ borderColor: 'var(--accent-9)', background: 'var(--slate-2)' }}
     >
       {children}
@@ -86,13 +86,13 @@ const mdComponents: Components = {
     const isBlock = className?.includes('language-');
     if (isBlock) {
       return (
-        <code className="block text-xs p-3 rounded-lg my-2 overflow-x-auto" style={{ background: 'var(--slate-2)' }} {...props}>
+        <code className="block text-sm sm:text-xs p-3 rounded-lg my-2 overflow-x-auto" style={{ background: 'var(--slate-2)' }} {...props}>
           {children}
         </code>
       );
     }
     return (
-      <code className="text-xs font-mono px-1.5 py-0.5 rounded" style={{ background: 'var(--slate-2)' }} {...props}>
+      <code className="text-sm sm:text-xs font-mono px-1.5 py-0.5 rounded" style={{ background: 'var(--slate-2)' }} {...props}>
         {children}
       </code>
     );
@@ -153,11 +153,11 @@ export function DiagnosisMarkdownCard({ markdown, className = '' }: Props) {
             <ClipboardList className="h-5 w-5" aria-hidden />
           </div>
           <div className="min-w-0 pt-0.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-900/90">
+            <p className="flex items-center gap-1.5 text-xs sm:text-[11px] font-semibold uppercase tracking-wide text-emerald-900/90">
               <Sparkles className="h-3.5 w-3.5 text-emerald-600 opacity-80" aria-hidden />
               Análisis preliminar
             </p>
-            <p className="text-[11px] leading-snug text-slate-500 mt-0.5 max-w-prose">
+            <p className="text-xs sm:text-[11px] leading-snug text-slate-500 mt-0.5 max-w-prose">
               Orientativo · no reemplaza consulta con abogado
             </p>
           </div>
@@ -171,7 +171,7 @@ export function DiagnosisMarkdownCard({ markdown, className = '' }: Props) {
           }}
         >
           <div
-            className="text-sm rounded-xl px-2 py-2 sm:px-3 sm:py-3 [&_h2:first-of-type]:text-[1.2rem] [&_h2:first-of-type]:mt-0 [&_h2:first-of-type]:pt-0 [&_h2:first-of-type]:pb-3 [&_h2]:scroll-mt-4"
+            className="text-base sm:text-sm rounded-xl px-2 py-2 sm:px-3 sm:py-3 [&_h2:first-of-type]:text-[1.3rem] sm:[&_h2:first-of-type]:text-[1.2rem] [&_h2:first-of-type]:mt-0 [&_h2:first-of-type]:pt-0 [&_h2:first-of-type]:pb-3 [&_h2]:scroll-mt-4"
             style={{
               background: 'rgba(255, 255, 255, 0.55)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',

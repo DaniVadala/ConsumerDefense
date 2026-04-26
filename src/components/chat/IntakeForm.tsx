@@ -251,7 +251,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
   return (
     <div className="flex flex-col gap-6 w-full max-w-lg mx-auto px-1 py-2">
       <div className="flex flex-col gap-1">
-        <div className="flex justify-between text-xs text-gray-500">
+        <div className="flex justify-between text-base sm:text-xs text-gray-500">
           <span>
             Siguiente dato ({pending.length} {pending.length === 1 ? 'pendiente' : 'pendientes'})
           </span>
@@ -277,15 +277,15 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
             }}
             placeholder={currentConfig.placeholder}
             rows={4}
-            className="border border-gray-300 rounded-lg px-4 py-3 text-sm
+            className="border border-gray-300 rounded-lg px-4 py-3 text-base sm:text-sm
               focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             autoFocus
           />
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && <p className="text-red-500 text-sm sm:text-xs">{error}</p>}
           <button
             type="button"
             onClick={handleTextSubmit}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-base sm:text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             Continuar →
           </button>
@@ -303,15 +303,15 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
             }}
             onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
             placeholder={currentConfig.placeholder}
-            className="border border-gray-300 rounded-lg px-4 py-3 text-sm
+            className="border border-gray-300 rounded-lg px-4 py-3 text-base sm:text-sm
               focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoFocus
           />
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && <p className="text-red-500 text-sm sm:text-xs">{error}</p>}
           <button
             type="button"
             onClick={handleTextSubmit}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-base sm:text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             Continuar →
           </button>
@@ -325,7 +325,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               key={opt.id}
               type="button"
               onClick={() => advance(opt.id as 'si' | 'no' | 'no_recuerda')}
-              className="border border-gray-300 rounded-lg px-4 py-3 text-sm
+              className="border border-gray-300 rounded-lg px-4 py-3 text-base sm:text-sm
                 text-left hover:bg-blue-50 hover:border-blue-400 transition-colors"
             >
               {opt.label}
@@ -341,7 +341,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               key={opt.id}
               type="button"
               onClick={() => advance(opt.label)}
-              className="border border-gray-300 rounded-lg px-4 py-3 text-sm
+              className="border border-gray-300 rounded-lg px-4 py-3 text-base sm:text-sm
                 text-left hover:bg-blue-50 hover:border-blue-400 transition-colors"
             >
               {opt.label}
@@ -358,7 +358,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
                 key={opt.id}
                 type="button"
                 onClick={() => toggleMulti(opt.id)}
-                className={`border rounded-full px-4 py-2 text-sm transition-colors ${
+                className={`border rounded-full px-4 py-2 text-base sm:text-sm transition-colors ${
                   multiSelected.includes(opt.id)
                     ? 'bg-blue-600 text-white border-blue-600'
                     : 'border-gray-300 text-gray-700 hover:border-blue-400'
@@ -368,11 +368,11 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               </button>
             ))}
           </div>
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && <p className="text-red-500 text-sm sm:text-xs">{error}</p>}
           <button
             type="button"
             onClick={handleMultiSubmit}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-base sm:text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             {currentConfig.primaryCtaLabel ?? 'Continuar →'}
           </button>
@@ -387,7 +387,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               setTextInput(e.target.value);
               setError('');
             }}
-            className="border border-gray-300 rounded-lg px-4 py-3 text-sm
+            className="border border-gray-300 rounded-lg px-4 py-3 text-base sm:text-sm
               focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoFocus
           >
@@ -398,7 +398,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               </option>
             ))}
           </select>
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && <p className="text-red-500 text-sm sm:text-xs">{error}</p>}
           <button
             type="button"
             onClick={() => {
@@ -408,7 +408,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               }
               advance(textInput);
             }}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-base sm:text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             Continuar →
           </button>
@@ -421,7 +421,7 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
             <select
               value={amountCurrency}
               onChange={(e) => setAmountCurrency(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-3 text-sm
+              className="border border-gray-300 rounded-lg px-3 py-3 text-base sm:text-sm
                 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="ARS">ARS $</option>
@@ -435,12 +435,12 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
                 setError('');
               }}
               placeholder={currentConfig.placeholder}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-base sm:text-sm
                 focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
           </div>
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && <p className="text-red-500 text-sm sm:text-xs">{error}</p>}
           <button
             type="button"
             onClick={() => {
@@ -451,14 +451,14 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               const n = Number(textInput);
               advance(`${amountCurrency} ${n.toLocaleString('es-AR')}`);
             }}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white rounded-lg px-4 py-3 text-base sm:text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             {currentConfig.primaryCtaLabel ?? 'Ver análisis →'}
           </button>
           <button
             type="button"
             onClick={() => advance('No sabe el monto exacto')}
-            className="text-gray-500 text-xs underline text-center"
+            className="text-gray-500 text-sm sm:text-xs underline text-center"
           >
             No sé el monto exacto
           </button>

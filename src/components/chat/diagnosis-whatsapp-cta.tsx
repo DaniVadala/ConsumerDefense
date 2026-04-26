@@ -28,7 +28,7 @@ export function DiagnosisWhatsAppCta({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-center gap-2 mt-4 w-full px-4 py-3 rounded-full text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 active:scale-[0.99]"
+      className="flex items-center justify-center gap-2 mt-4 w-full px-4 py-3 rounded-full text-base sm:text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 active:scale-[0.99]"
       style={{ background: '#25D366' }}
       onClick={() => trackWhatsAppClick(source)}
     >
