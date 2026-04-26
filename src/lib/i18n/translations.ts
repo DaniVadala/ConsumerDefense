@@ -14,7 +14,7 @@ const es = {
     pillConfidential: 'Confidencial',
     pillFree: 'Análisis gratis',
     ctaButton: 'Empezá tu análisis gratis',
-    ctaButtonReset: 'Iniciá un nuevo análisis gratis',
+    ctaButtonReset: 'Nuevo análisis gratuito',
     ctaSubtext: 'Sin registro · Resultado en segundos',
     ctaButtonLimitReached: 'Hablar con un abogado por WhatsApp',
     ctaSubtextLimitReached: 'Límite diario de 2 consultas alcanzado · Volvé mañana para más análisis',
@@ -23,7 +23,7 @@ const es = {
     calSubtext: 'Virtual · Sin costo · 15 min · Sin compromiso',
   },
   steps: {
-    pill: 'El chatbot · Paso a paso',
+    pill: 'Asistente pre-legal',
     title: '¿Cómo funciona el análisis?',
     subtitle:
       'Contanos tu caso en el chat y recibís un análisis inicial en minutos. Sin tecnicismos, sin datos personales.',
@@ -88,15 +88,40 @@ const es = {
     live: 'En vivo',
     typing: 'DefensaYa está escribiendo',
     placeholder: 'Contame tu problema...',
+    placeholderWelcome: 'Esperá a que termine el saludo y aceptá los términos abajo',
     hintText: 'Escribí tu consulta acá · gratis y confidencial',
     welcome:
-      '¡Hola! Soy DefensaYa 🤖 Los reclamos de consumo en Argentina tienen plazos — contame qué pasó y en 2 minutos tenés un análisis preliminar.',
+      '¡Hola! Soy DefensaYa 🤖 Los reclamos de consumo en Argentina tienen plazos — contame en pocas palabras qué te pasó (cobro, servicio, producto, banco, etc.) y en 2 minutos tenés un análisis preliminar.',
     suggestions: [
       'Me cobraron de más en la tarjeta',
       'No respetan la garantía del producto',
       'Internet o celular no funciona y no me dan solución',
       'Cancelaron mi vuelo o viaje',
     ],
+    referralDisclaimer: 'Estás en fase beta. Te podemos conectar con abogados matriculados independientes de nuestra red de voluntarios. La consulta inicial es gratuita y sin obligación. DefensaYa no es un estudio jurídico; los abogados actúan por cuenta propia. En el futuro esta red pasará a ser un servicio de suscripción profesional.',
+    termsTitle: 'Antes de empezar',
+    termsBody:
+      'Este servicio brinda orientación automatizada con IA. No constituye asesoramiento legal ni crea relación abogado-cliente.\n\n' +
+      'Tu privacidad: los datos del chat se procesan según la Ley 25.326 y no se almacenan permanentemente. No ingreses DNI, CUIL ni datos bancarios en este chat — compartilos directamente con el profesional que te contacte.\n\n' +
+      'Los profesionales: abogados independientes, matriculados y especializados en defensa del consumidor, que integran la red de derivación de SyndesiX.\n\n' +
+      'Al continuar, aceptás estos términos.',
+    termsButton: 'Entendido, empecemos',
+    /** Sin instrucciones largas: el hilo de la pregunta ya guía. */
+    placeholderCompany: 'Empresa o comercio',
+    amountHint: 'Introducí el número (podés usar coma o punto para decimales). Elegí si es pesos argentinos o dólares.',
+    amountNumberLabel: 'Monto',
+    amountCurrency: 'Moneda',
+    amountSubmit: 'Enviar monto',
+    jurisdictionLabel: 'Escribí o elegí de la lista una provincia o CABA (jurisdicción donde ocurrió el hecho o la compra).',
+    jurisdictionDatalist: 'Buscar provincia o CABA...',
+    jurisdictionSubmit: 'Confirmar',
+    jurisdictionUnknown: 'No lo recuerdo',
+    docOtherTitle: 'Otra prueba o documentación',
+    docOtherPlaceholder: 'Contá qué tenés: testigos, pericia, otra prueba, etc.',
+    docOtherSubmit: 'Enviar',
+    docOtherCancel: 'Volver a las opciones',
+    /** Chips del tool proponerOpcionesIntake (multi) */
+    pillsDone: 'Listo',
   },
   about: {
     pill: 'Quiénes somos',
@@ -112,7 +137,7 @@ const es = {
   },
   footer: {
     tagline:
-      'Orientación gratuita al consumidor argentino. Análisis inmediato con IA, sin registro.',
+      'Orientación gratuita al consumidor argentino. Análisis inmediato con IA y derivación a abogados especializados en defensa del consumidor. Sin registro.',
     orgsHeading: 'Organismos',
     legalHeading: 'Marco Legal',
     contactHeading: 'Consultá ahora',
@@ -154,7 +179,7 @@ export const translations: Record<Lang, Translations> = {
       pillConfidential: 'Confidential',
       pillFree: 'Free analysis',
       ctaButton: 'Start your free analysis',
-      ctaButtonReset: 'Start a new free analysis',
+      ctaButtonReset: 'New free analysis',
       ctaSubtext: 'No signup · Result in seconds',
       ctaButtonLimitReached: 'Talk to a lawyer on WhatsApp',
       ctaSubtextLimitReached: 'Daily limit of 2 analyses reached · Come back tomorrow for more',
@@ -163,7 +188,7 @@ export const translations: Record<Lang, Translations> = {
       calSubtext: 'Virtual · Free · 15 min · No commitment',
     },
     steps: {
-      pill: 'The chatbot · Step by step',
+      pill: 'Pre-legal assistant',
       title: 'How does the analysis work?',
       subtitle:
         'Tell us your case and get an initial analysis in minutes. No jargon, no personal data required.',
@@ -228,6 +253,7 @@ export const translations: Record<Lang, Translations> = {
       live: 'Live',
       typing: 'DefensaYa is typing',
       placeholder: 'Tell me your problem...',
+      placeholderWelcome: 'Wait for the welcome to finish, then accept the terms below',
       hintText: 'Type your question here · free & confidential',
       welcome:
         "Hi! I'm DefensaYa 🤖 Tell me what problem you had with a company, bank or service, and I'll help you understand what you can do.",
@@ -237,6 +263,28 @@ export const translations: Record<Lang, Translations> = {
         'Internet or phone service keeps failing',
         'My flight or trip was cancelled',
       ],
+      referralDisclaimer: 'You are in beta. We can connect you with independent, registered attorneys from our volunteer network. The initial consultation is free and with no obligation. DefensaYa is not a law firm; attorneys act on their own behalf. In the future, this network will become a professional subscription service.',
+      termsTitle: 'Before we start',
+      termsBody:
+        'This service provides automated guidance with AI. It does not constitute legal advice nor create an attorney–client relationship.\n\n' +
+        'Your privacy: chat data is processed in line with Law 25.326 (Argentina) and is not stored permanently. Do not enter national ID, tax ID, or bank details in this chat — share those directly with the professional who contacts you.\n\n' +
+        'Professionals: independent, licensed lawyers specializing in consumer protection, part of the SyndesiX referral network.\n\n' +
+        'By continuing, you accept these terms.',
+      termsButton: 'Got it, let\'s go',
+      placeholderCompany: 'Business or store',
+      amountHint: 'Enter the amount. Choose ARS or USD.',
+      amountNumberLabel: 'Amount',
+      amountCurrency: 'Currency',
+      amountSubmit: 'Send amount',
+      jurisdictionLabel: 'Type or pick a province or CABA (where the issue happened).',
+      jurisdictionDatalist: 'Search province or CABA...',
+      jurisdictionSubmit: 'Confirm',
+      jurisdictionUnknown: "I don't remember",
+      docOtherTitle: 'Other evidence',
+      docOtherPlaceholder: 'Describe what you have (other proof, etc.).',
+      docOtherSubmit: 'Send',
+      docOtherCancel: 'Back to options',
+      pillsDone: 'Done',
     },
     about: {
       pill: 'Who we are',
@@ -251,7 +299,7 @@ export const translations: Record<Lang, Translations> = {
       linkLabel: 'Learn more about SyndesiX',
     },
     footer: {
-      tagline: 'Free consumer guidance for Argentina. Immediate AI analysis, no registration.',
+      tagline: 'Free consumer guidance for Argentina. Instant AI analysis and referral to attorneys specialized in consumer rights. No registration.',
       orgsHeading: 'Agencies',
       legalHeading: 'Legal Framework',
       contactHeading: 'Contact us',

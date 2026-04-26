@@ -12,7 +12,6 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-// SEO: Complete metadata with canonical, twitter card, and OG tags
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: '¿Tenés un reclamo viable como consumidor? — DefensaYa',
@@ -35,12 +34,21 @@ export const metadata: Metadata = {
     type: 'website',
     url: '/',
     siteName: 'DefensaYa',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'DefensaYa — Análisis gratuito de reclamos de consumo con IA',
+      },
+    ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: '¿Tenés un reclamo viable como consumidor? — DefensaYa',
     description:
       'Orientación gratuita al consumidor argentino. Diagnóstico inmediato con IA.',
+    images: ['/og-image.png'],
   },
 };
 
@@ -56,8 +64,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* PERF: dns-prefetch for Cal.com embed loaded on demand */}
         <link rel="dns-prefetch" href="https://app.cal.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
         <GoogleAnalytics />
       </head>
       <body>

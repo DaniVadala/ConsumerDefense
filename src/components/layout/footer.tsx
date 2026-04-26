@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList, CalendarDays } from 'lucide-react';
+import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList, CalendarDays, Briefcase } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
 import { useCalModal } from '../cal-modal';
 import { LeadForm } from '../lead-form';
 import { trackChatFocus, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen, trackCalModalOpen, trackCalPreload, trackExternalLinkClick } from '@/lib/analytics';
 import { openMailCompose } from '@/lib/utils';
+import { useChatAvailability } from '@/lib/chat-availability-context';
 
 
 const WHATSAPP_NUMBER = '5493515284074';
@@ -72,6 +73,8 @@ export function Footer() {
   const { t } = useLocale();
   const [formOpen, setFormOpen] = useState(false);
   const { openCalModal, preloadCal } = useCalModal();
+  const { isRateLimited, isConversationEnded, heroWhatsAppReason } = useChatAvailability();
+  const hideAiChat = isRateLimited || (isConversationEnded && heroWhatsAppReason !== null);
 
   return (
     <footer className="bg-gray-900 text-white" aria-label="Pie de página">
@@ -113,6 +116,7 @@ export function Footer() {
           <div>
             <FooterHeading>{t.footer.contactHeading}</FooterHeading>
             <ul className="space-y-3">
+              {!hideAiChat && (
               <li>
                 <button
                   onClick={() => { trackChatFocus(); focusChatInput(); }}
@@ -122,6 +126,7 @@ export function Footer() {
                   {t.footer.contactChat}
                 </button>
               </li>
+              )}
               <li>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.footer.contactWaText)}`}
@@ -162,6 +167,15 @@ export function Footer() {
                   <CalendarDays className="w-4 h-4 text-teal-400 flex-shrink-0" />
                   {t.footer.contactCal}
                 </button>
+              </li>
+              <li>
+                <a
+                  href="/abogados"
+                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  <Briefcase className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  Para abogados: unite a la red
+                </a>
               </li>
             </ul>
           </div>

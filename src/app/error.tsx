@@ -1,13 +1,12 @@
-// DATA-RELIABILITY: Global error boundary — shows fallback UI for unexpected runtime errors
 'use client';
 
 import Link from 'next/link';
 
 export default function Error({
-  unstable_retry,
+  reset,
 }: {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
+  reset: () => void;
 }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
@@ -17,7 +16,7 @@ export default function Error({
       </p>
       <div className="flex gap-3">
         <button
-          onClick={() => unstable_retry()}
+          onClick={() => reset()}
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-full transition-colors"
         >
           Intentar de nuevo

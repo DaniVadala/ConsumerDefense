@@ -8,8 +8,8 @@ import { useLocale } from '@/lib/i18n/context';
 import { trackChatFocus, trackCalModalOpen, trackCalPreload } from '@/lib/analytics';
 import { useChatAvailability } from '@/lib/chat-availability-context';
 
-const ChatWidget = dynamic(
-  () => import('@/components/chat/chat-widget').then(m => ({ default: m.ChatWidget })),
+const ChatContainer = dynamic(
+  () => import('@/components/chat/thread').then(m => ({ default: m.ChatContainer })),
   {
     ssr: false,
     loading: () => (
@@ -43,12 +43,36 @@ function focusChatInput() {
   window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
 }
 
-const WA_SPECIALIST_HREF = `https://wa.me/5493515284074?text=${encodeURIComponent('Hola DefensaYa, ya completé el análisis preliminar y quiero hablar con un especialista para presentar mi reclamo.')}`;
+const WHATSAPP_NUMBER = '5493515284074';
 
-function WhatsAppHeroButton({ className }: { className?: string }) {
+const HERO_WA_MESSAGES: Record<string, string> = {
+  insulto:      'Hola DefensaYa, necesito ayuda con un reclamo de consumo.',
+  absurdo:      'Hola DefensaYa, necesito ayuda con un reclamo de consumo.',
+  no_conducente:'Hola DefensaYa, me costó explicar mi problema en el chat. ¿Pueden ayudarme con mi reclamo?',
+  stuck:        'Hola DefensaYa, me costó explicar mi problema en el chat. ¿Pueden ayudarme con mi reclamo?',
+  turn_cap:     'Hola DefensaYa, me costó explicar mi problema en el chat. ¿Pueden ayudarme con mi reclamo?',
+  fuera_de_scope:'Hola DefensaYa, tengo una consulta y me dijeron que podían orientarme.',
+  default:      'Hola DefensaYa, necesito ayuda con un reclamo de consumo.',
+};
+
+const HERO_WA_LABELS: Record<string, string> = {
+  insulto:      'Contactar al equipo',
+  absurdo:      'Contactar al equipo',
+  no_conducente:'Hablar con un especialista',
+  stuck:        'Hablar con un especialista',
+  turn_cap:     'Hablar con un especialista',
+  fuera_de_scope:'Consultar al equipo',
+  default:      'Hablar con un especialista',
+};
+
+function WhatsAppHeroButton({ reason, className }: { reason?: string; className?: string }) {
+  const r = reason ?? 'default';
+  const text = HERO_WA_MESSAGES[r] ?? HERO_WA_MESSAGES.default;
+  const label = HERO_WA_LABELS[r] ?? HERO_WA_LABELS.default;
+  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
   return (
     <a
-      href={WA_SPECIALIST_HREF}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center justify-center gap-2 text-white text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] hover:shadow-xl w-full ${className ?? ''}`}
@@ -58,7 +82,7 @@ function WhatsAppHeroButton({ className }: { className?: string }) {
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
         <path d="M11.894 0C5.354 0 0 5.353 0 11.893c0 2.098.547 4.142 1.588 5.945L.057 24l6.304-1.654a11.913 11.913 0 005.533 1.375h.005C18.43 23.721 23.786 18.369 23.786 11.83 23.786 5.29 18.433-.001 11.894 0zm0 21.785h-.004a9.892 9.892 0 01-5.044-1.381l-.361-.214-3.742.981.998-3.648-.235-.374a9.842 9.842 0 01-1.51-5.27c0-5.445 4.432-9.876 9.882-9.876 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.89-9.865 9.89z" />
       </svg>
-      Hablar con un especialista
+      {label}
     </a>
   );
 }
@@ -66,7 +90,9 @@ function WhatsAppHeroButton({ className }: { className?: string }) {
 export function Hero() {
   const { t } = useLocale();
   const { openCalModal, preloadCal } = useCalModal();
-  const { chatAvailable, resetKey, isConversationEnded, resetConversation, isRateLimited } = useChatAvailability();
+  const { chatAvailable, resetKey, isConversationEnded, resetConversation, isRateLimited, heroWhatsAppReason } = useChatAvailability();
+  const showHeroWhatsApp = isRateLimited || heroWhatsAppReason !== null;
+  const heroWaReason = heroWhatsAppReason ?? 'default';
 
   const handleCalOpen = () => { trackCalModalOpen('hero'); openCalModal(); };
   const handleCalPreload = () => { trackCalPreload('hero'); preloadCal(); };
@@ -147,7 +173,7 @@ export function Hero() {
               </div>
             )}
             <div className="h-[480px] rounded-2xl overflow-hidden shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
-              <ChatWidget key={resetKey} />
+              <ChatContainer key={resetKey} />
             </div>
           </div>
 
@@ -170,15 +196,15 @@ export function Hero() {
           {/* 6. CTA */}
           <div className="flex flex-col items-center gap-1.5">
             {chatAvailable && (
-              isRateLimited ? (
-                <WhatsAppHeroButton />
+              showHeroWhatsApp ? (
+                <WhatsAppHeroButton reason={heroWaReason} />
               ) : (
                 <button
                   onClick={handleCtaClickMobile}
                   className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
                 >
                   {isConversationEnded ? (
-                    <><RotateCcw className="w-4 h-4" />Iniciá un nuevo análisis gratis</>
+                    <><RotateCcw className="w-4 h-4 flex-shrink-0" />{t.hero.ctaButtonReset}</>
                   ) : (
                     <>{t.hero.ctaButton}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" /></>
                   )}
@@ -256,15 +282,15 @@ export function Hero() {
               {/* CTA buttons — overlap the bottom of the image */}
               <div className="flex flex-col items-center gap-1 w-full max-w-sm -mt-8 relative z-10">
                   {chatAvailable && (
-                    isRateLimited ? (
-                      <WhatsAppHeroButton />
+                    showHeroWhatsApp ? (
+                      <WhatsAppHeroButton reason={heroWaReason} />
                     ) : (
                       <button
                         onClick={handleCtaClickDesktop}
                         className="cursor-pointer inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 text-base font-bold px-8 py-3 rounded-full shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl w-full group"
                       >
                         {isConversationEnded ? (
-                          <><RotateCcw className="w-4 h-4" />Iniciá un nuevo análisis gratis</>
+                          <><RotateCcw className="w-4 h-4 flex-shrink-0" />{t.hero.ctaButtonReset}</>
                         ) : (
                           <>{t.hero.ctaButton}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" /></>
                         )}
@@ -318,7 +344,7 @@ export function Hero() {
                   </div>
                 )}
                 <div className="relative flex-1 overflow-hidden rounded-2xl min-h-0 shadow-[0_8px_48px_-8px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/10">
-                  <ChatWidget key={resetKey} />
+                  <ChatContainer key={resetKey} />
                 </div>
               </div>
             </div>

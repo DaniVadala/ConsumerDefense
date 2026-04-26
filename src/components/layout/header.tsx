@@ -38,6 +38,11 @@ function focusChat() {
   window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
 }
 
+function scrollToChat() {
+  const widget = document.querySelector('[data-chat-widget]');
+  widget?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 export function Header() {
   const { lang, setLang, t } = useLocale();
   const [scrolled, setScrolled] = useState(false);
@@ -74,7 +79,7 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-6">
           <button
             onClick={() => { trackNavClick('como-funciona', 'header'); scrollTo('como-funciona'); }}
-            className={`text-sm font-medium transition-colors ${
+            className={`cursor-pointer text-sm font-medium transition-colors ${
               scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
             }`}
           >
@@ -82,7 +87,7 @@ export function Header() {
           </button>
           <button
             onClick={() => { trackNavClick('qualifai', 'header'); scrollTo('qualifai'); }}
-            className={`text-sm font-medium transition-colors ${
+            className={`cursor-pointer text-sm font-medium transition-colors ${
               scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
             }`}
           >
@@ -94,7 +99,7 @@ export function Header() {
             <button
               onClick={() => { trackLanguageChange('es'); setLang('es'); }}
               aria-label="Cambiar a español"
-              className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors ${
+              className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
                 lang === 'es'
                   ? scrolled ? 'text-[var(--accent-9)]' : 'text-emerald-400'
                   : scrolled ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
@@ -107,7 +112,7 @@ export function Header() {
             <button
               onClick={() => { trackLanguageChange('en'); setLang('en'); }}
               aria-label="Switch to English"
-              className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors ${
+              className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
                 lang === 'en'
                   ? scrolled ? 'text-[var(--accent-9)]' : 'text-emerald-400'
                   : scrolled ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
@@ -159,7 +164,7 @@ export function Header() {
             <button
               onClick={() => { trackLanguageChange('es'); setLang('es'); }}
               aria-label="Cambiar a español"
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors cursor-pointer ${
                 lang === 'es' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
               }`}
             >
@@ -169,7 +174,7 @@ export function Header() {
             <button
               onClick={() => { trackLanguageChange('en'); setLang('en'); }}
               aria-label="Switch to English"
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-colors cursor-pointer ${
                 lang === 'en' ? 'bg-[var(--accent-3)] text-[var(--accent-9)]' : 'text-gray-400 hover:text-gray-700'
               }`}
             >
@@ -179,7 +184,7 @@ export function Header() {
           </div>
           <button
             className="block w-full text-center bg-[var(--accent-9)] text-white text-sm font-semibold px-5 py-3 rounded-full transition-colors hover:bg-[var(--accent-10)]"
-            onClick={() => { setMobileOpen(false); trackNavClick('empeza-gratis', 'mobile_menu'); focusChat(); }}
+            onClick={() => { setMobileOpen(false); trackNavClick('empeza-gratis', 'mobile_menu'); scrollToChat(); }}
           >
             {t.header.startFree}
           </button>

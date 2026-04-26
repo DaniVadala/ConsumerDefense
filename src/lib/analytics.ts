@@ -56,6 +56,11 @@ export function trackChatIntakeAnswer(step: number, totalSteps: number) {
   gtag('event', 'chat_intake_answer', { step, total_steps: totalSteps });
 }
 
+/** Funnel por paso del intake (metadato currentStep). */
+export function trackChatIntakeStep(stepName: string) {
+  gtag('event', 'chat_intake_step', { step_name: stepName });
+}
+
 export function trackChatDiagnosticGenerated(casoId: string, area: string) {
   gtag('event', 'chat_diagnostic_generated', { caso_id: casoId, area });
 }
