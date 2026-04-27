@@ -130,7 +130,7 @@ const es = {
     intakeFreeSubtitle:
       'Describí tu caso con el detalle que tengas. Cuanto más informes, menos preguntas adicionales necesitaremos.',
     intakeFreePlaceholder:
-      'Ej: Mercado Libre no me entregó un paquete que compré en marzo. Reclamé por mail pero no me responden. Tengo la factura y los mails. El producto costó $80.000...',
+      'Ej.: compra con factura que falla, reclamo de garantía sin solución; tenés factura y constancia del servicio.',
     intakeFreeSend: 'Enviar',
     intakeFreeHint: 'Podés escribir todo junto — detectamos automáticamente los datos.',
     intakeFreeMinError: 'Contanos un poco más sobre tu caso.',
@@ -332,7 +332,7 @@ export const translations: Record<Lang, Translations> = {
       intakeFreeSubtitle:
         'Describe your case with as much detail as you have. The more you share, the fewer follow-up questions we need.',
       intakeFreePlaceholder:
-        'E.g. An online store never delivered a package I bought in March. I complained by email but got no reply. I have the invoice and emails. The item was about $80,000...',
+        'E.g. purchase with invoice that fails, warranty claim with no fix; you have the invoice and service paperwork.',
       intakeFreeSend: 'Send',
       intakeFreeHint: 'You can write everything at once — we detect the data automatically.',
       intakeFreeMinError: 'Tell us a bit more about your case.',
