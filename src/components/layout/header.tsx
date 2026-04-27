@@ -27,22 +27,18 @@ function UsFlag() {
   );
 }
 
+const START_SECTION_ID = 'elegi-como-empezar';
+
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 }
 
-function focusChat() {
-  const all = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
-  const textarea = Array.from(all).find((el) => el.offsetParent !== null);
-  if (!textarea) return;
-  textarea.focus();
-  const rect = textarea.getBoundingClientRect();
-  window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
-}
-
-function scrollToChat() {
-  const widget = document.querySelector('[data-chat-widget]');
-  widget?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+function goToStartSection(isHome: boolean) {
+  if (isHome) {
+    scrollTo(START_SECTION_ID);
+  } else {
+    window.location.href = `/#${START_SECTION_ID}`;
+  }
 }
 
 export function Header() {
@@ -143,8 +139,7 @@ export function Header() {
             type="button"
             onClick={() => {
               trackNavClick('empeza-gratis', 'header');
-              if (isHome) focusChat();
-              else window.location.href = '/';
+              goToStartSection(isHome);
             }}
             className="inline-flex items-center cursor-pointer bg-[var(--accent-9)] hover:bg-[var(--accent-10)] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:scale-[1.02] hover:shadow-md shadow-sm"
           >
@@ -231,8 +226,7 @@ export function Header() {
             onClick={() => {
               setMobileOpen(false);
               trackNavClick('empeza-gratis', 'mobile_menu');
-              if (isHome) scrollToChat();
-              else window.location.href = '/';
+              goToStartSection(isHome);
             }}
           >
             {t.header.startFree}

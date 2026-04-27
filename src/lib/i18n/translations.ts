@@ -177,7 +177,7 @@ const es = {
   about: {
     pill: 'Quiénes somos',
     title: '¿Qué es SyndesiX?',
-    body: 'SyndesiX es una plataforma que combina inteligencia artificial y atención multicanal para conectar a las personas con el profesional adecuado para cada problema. Nuestra tecnología analiza cada caso de forma personalizada, califica la consulta y la deriva al especialista correcto a través del canal que el usuario prefiera — chat, WhatsApp, formulario o llamada. DefensaYA es nuestra primera solución vertical, enfocada en análisis preliminar en Defensa del Consumidor en Argentina, con conexión directa a abogados reales a través de múltiples canales de atención.',
+    body: 'SyndesiX es el proyecto con el que desarrollamos herramientas con inteligencia artificial y canales de contacto sencillos, para que cada persona entienda mejor su situación y defina con más criterio el próximo paso. Aquí el foco no es solo ordenar el relato, sino ofrecer una orientación inicial que organice la información y facilite avanzar en el contacto con un profesional de manera más informada. Hoy eso vive en DefensaYa, enfocado en defensa del consumidor en Argentina y en la vinculación con abogados cuando corresponda. Con el tiempo, la misma lógica puede extenderse a otras áreas, siempre acompañando el primer acercamiento a profesionales y sin reemplazar la intervención que exige cada disciplina.',
     stat1Value: '1ª',
     stat1Label: 'Plataforma que combina IA + omnicanalidad para conectar con abogados reales',
     stat2Value: '5',
@@ -390,7 +390,7 @@ export const translations: Record<Lang, Translations> = {
     about: {
       pill: 'Who we are',
       title: 'What is SyndesiX?',
-      body: 'SyndesiX is a platform that combines artificial intelligence and multichannel support to connect people with the right professional for each problem. Our technology analyzes each case in a personalized way, qualifies the inquiry and routes it to the correct specialist through the user\'s preferred channel — chat, WhatsApp, form or phone call. DefensaYA is our first vertical solution, focused on preliminary consumer rights analysis in Argentina, with direct connection to real lawyers through multiple support channels.',
+      body: 'SyndesiX is the project through which we build tools that combine AI and simple contact channels, so people can better understand their situation and choose their next step with sound judgment. The focus is not just to sort the story, but to offer initial guidance that structures information and makes it easier to reach a professional with a clearer, better-informed starting point. Today that lives in DefensaYa, focused on consumer rights in Argentina and on connecting with attorneys when appropriate. The same approach may extend to other areas over time, always supporting an initial path to professionals without replacing the judgment each profession requires.',
       stat1Value: '1st',
       stat1Label: 'Platform combining AI + omnichannel to connect with real lawyers',
       stat2Value: '5',

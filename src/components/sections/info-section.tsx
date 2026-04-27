@@ -19,7 +19,11 @@ export function InfoSection() {
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.info.waMessage)}`;
 
   return (
-    <section className="pt-6 pb-16 lg:pt-8 lg:pb-20 px-4 bg-white" aria-label="Canales de contacto">
+    <section
+      id="elegi-como-empezar"
+      className="scroll-mt-20 pt-6 pb-16 lg:pt-8 lg:pb-20 px-4 bg-white"
+      aria-label="Canales de contacto"
+    >
       <div className="max-w-5xl mx-auto">
 
         {/* Section header */}
