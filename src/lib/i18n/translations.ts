@@ -4,7 +4,19 @@ const es = {
   header: {
     howItWorks: '¿Cómo funciona?',
     aboutUs: 'Sobre nosotros',
+    noticias: 'Noticias',
     startFree: 'Empezá gratis',
+  },
+  noticias: {
+    pageTitle: 'Noticias y fallos',
+    pageSubtitle: 'Jurisprudencia reciente sobre defensa del consumidor, con análisis breve de DefensaYa.',
+    readArticle: 'Leer análisis',
+    backToList: 'Volver a noticias',
+    analysisTitle: 'Análisis de DefensaYa',
+    sourceCta: 'Fuente del caso',
+    metaTitle: 'Noticias y fallos',
+    metaDescription:
+      'Fallos y tendencias en defensa del consumidor en Argentina. Resúmenes y opinión legal y tecnológica de DefensaYa.',
   },
   hero: {
     headline1: 'Hacé valer tus derechos',
@@ -52,11 +64,10 @@ const es = {
     title: 'Tecnología legal, transparente y sin letra chica',
     signals: [
       { title: 'Ley 24.240', description: 'Análisis basados en la Ley de Defensa del Consumidor vigente.' },
-      { title: 'IA entrenada en legislación', description: 'Modelo entrenado con jurisprudencia y normativas de organismos oficiales argentinos.' },
       { title: 'Confidencial y seguro', description: 'Tu consulta no se almacena ni se comparte. Sin registro previo.' },
       { title: 'Respaldado por abogados', description: 'Cada análisis puede ser revisado por profesionales matriculados.' },
       { title: 'Análisis en minutos', description: 'Recibí una orientación legal inicial en menos de 3 minutos.' },
-      { title: 'Sin costo ni compromiso', description: 'El análisis inicial es 100% gratuito. Pagás solo si decidís avanzar.' },
+      { title: 'Sin costo ni compromiso', description: 'El análisis inicial es 100% gratuito.' },
     ],
   },
   info: {
@@ -176,6 +187,7 @@ const es = {
     linkLabel: 'Conocé más sobre SyndesiX',
   },
   footer: {
+    noticiasLink: 'Noticias y fallos',
     tagline:
       'Orientación gratuita al consumidor argentino. Análisis inmediato con IA y derivación a abogados especializados en defensa del consumidor. Sin registro.',
     orgsHeading: 'Organismos',
@@ -209,7 +221,19 @@ export const translations: Record<Lang, Translations> = {
     header: {
       howItWorks: 'How it works',
       aboutUs: 'About us',
+      noticias: 'News',
       startFree: 'Start free',
+    },
+    noticias: {
+      pageTitle: 'News & case law',
+      pageSubtitle: 'Recent consumer-protection jurisprudence in Argentina, with a short DefensaYa analysis.',
+      readArticle: 'Read analysis',
+      backToList: 'Back to news',
+      analysisTitle: 'DefensaYa analysis',
+      sourceCta: 'Case source',
+      metaTitle: 'News & case law',
+      metaDescription:
+        'Rulings and trends in Argentine consumer law. Summaries and legal-tech context from DefensaYa.',
     },
     hero: {
       headline1: 'Assert your rights',
@@ -257,11 +281,10 @@ export const translations: Record<Lang, Translations> = {
       title: 'Legal technology, transparent and clear',
       signals: [
         { title: 'Law 24.240', description: "Analyses based on Argentina's Consumer Protection Law." },
-        { title: 'AI trained on legislation', description: 'Model trained on case law and regulations from official Argentine agencies.' },
         { title: 'Confidential & secure', description: 'Your query is never stored or shared. No prior registration required.' },
         { title: 'Backed by lawyers', description: 'Every analysis can be reviewed by a registered attorney.' },
         { title: 'Analysis in minutes', description: 'Get initial legal guidance in under 3 minutes.' },
-        { title: 'No cost, no commitment', description: 'The initial analysis is 100% free. You only pay if you decide to proceed.' },
+        { title: 'No cost, no commitment', description: 'The initial analysis is 100% free.' },
       ],
     },
     info: {
@@ -377,6 +400,7 @@ export const translations: Record<Lang, Translations> = {
       linkLabel: 'Learn more about SyndesiX',
     },
     footer: {
+      noticiasLink: 'News & case law',
       tagline: 'Free consumer guidance for Argentina. Instant AI analysis and referral to attorneys specialized in consumer rights. No registration.',
       orgsHeading: 'Agencies',
       legalHeading: 'Legal Framework',

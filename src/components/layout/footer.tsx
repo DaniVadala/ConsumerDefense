@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList, CalendarDays, Briefcase } from 'lucide-react';
+import Link from 'next/link';
+import { Shield, ExternalLink, MessageCircle, Mail, Bot, ClipboardList, CalendarDays, Briefcase, Newspaper } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
 import { useCalModal } from '../cal-modal';
 import { LeadForm } from '../lead-form';
@@ -86,7 +87,7 @@ export function Footer() {
           {/* Brand column — spans full width on mobile, 1 col on md+ */}
           <div className="sm:col-span-2 md:col-span-1">
             <a
-              href="#"
+              href="/"
               className="inline-flex items-center gap-2.5 mb-4 hover:opacity-80 transition-opacity"
               aria-label="DefensaYa – inicio"
             >
@@ -98,6 +99,13 @@ export function Footer() {
             <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
               {t.footer.tagline}
             </p>
+            <Link
+              href="/noticias"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-emerald-400/90 hover:text-emerald-300 transition-colors"
+            >
+              <Newspaper className="w-4 h-4 flex-shrink-0" aria-hidden />
+              {t.footer.noticiasLink}
+            </Link>
           </div>
 
           {/* Organismos column */}

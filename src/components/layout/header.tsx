@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Shield, Menu, X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
 import { trackNavClick, trackLanguageChange } from '@/lib/analytics';
@@ -44,9 +46,12 @@ function scrollToChat() {
 }
 
 export function Header() {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
   const { lang, setLang, t } = useLocale();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const useSolidStyle = !isHome || scrolled;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 2);
@@ -58,41 +63,52 @@ export function Header() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 ${
-        scrolled
+        useSolidStyle
           ? 'bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm'
           : 'bg-transparent'
       }`}
     >
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className={`flex items-center gap-2 font-bold hover:opacity-80 transition-opacity ${ scrolled ? 'text-gray-900' : 'text-white' }`}>
+        <Link href="/" className={`flex items-center gap-2 font-bold hover:opacity-80 transition-opacity ${ useSolidStyle ? 'text-gray-900' : 'text-white' }`}>
           <div className="w-8 h-8 bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] rounded-lg flex items-center justify-center shadow-sm">
             <Shield className="w-4 h-4 text-white" />
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-lg tracking-tight leading-none">DefensaYa</span>
-            <span className={`text-[10px] font-normal tracking-wide leading-none mt-0.5 ${ scrolled ? 'text-gray-400' : 'text-white/45' }`}>by SyndesiX</span>
+            <span className={`text-[10px] font-normal tracking-wide leading-none mt-0.5 ${ useSolidStyle ? 'text-gray-400' : 'text-white/45' }`}>by SyndesiX</span>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6">
           <button
-            onClick={() => { trackNavClick('como-funciona', 'header'); scrollTo('como-funciona'); }}
+            type="button"
+            onClick={() => { trackNavClick('como-funciona', 'header'); if (isHome) scrollTo('como-funciona'); else window.location.href = '/#como-funciona'; }}
             className={`cursor-pointer text-sm font-medium transition-colors ${
-              scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
+              useSolidStyle ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
             }`}
           >
             {t.header.howItWorks}
           </button>
           <button
-            onClick={() => { trackNavClick('qualifai', 'header'); scrollTo('qualifai'); }}
+            type="button"
+            onClick={() => { trackNavClick('qualifai', 'header'); if (isHome) scrollTo('qualifai'); else window.location.href = '/#qualifai'; }}
             className={`cursor-pointer text-sm font-medium transition-colors ${
-              scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
+              useSolidStyle ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
             }`}
           >
             {t.header.aboutUs}
           </button>
+          <Link
+            href="/noticias"
+            onClick={() => { trackNavClick('noticias', 'header'); }}
+            className={`text-sm font-medium transition-colors ${
+              useSolidStyle ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
+            }`}
+          >
+            {t.header.noticias}
+          </Link>
 
           {/* Language selector */}
           <div className="flex items-center gap-1 text-sm font-semibold">
@@ -101,21 +117,21 @@ export function Header() {
               aria-label="Cambiar a español"
               className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
                 lang === 'es'
-                  ? scrolled ? 'text-[var(--accent-9)]' : 'text-emerald-400'
-                  : scrolled ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
+                  ? useSolidStyle ? 'text-[var(--accent-9)]' : 'text-emerald-400'
+                  : useSolidStyle ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
               }`}
             >
               <ArgFlag />
               <span>ES</span>
             </button>
-            <span className={scrolled ? 'text-gray-300' : 'text-white/20'} aria-hidden="true">|</span>
+            <span className={useSolidStyle ? 'text-gray-300' : 'text-white/20'} aria-hidden="true">|</span>
             <button
               onClick={() => { trackLanguageChange('en'); setLang('en'); }}
               aria-label="Switch to English"
               className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
                 lang === 'en'
-                  ? scrolled ? 'text-[var(--accent-9)]' : 'text-emerald-400'
-                  : scrolled ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
+                  ? useSolidStyle ? 'text-[var(--accent-9)]' : 'text-emerald-400'
+                  : useSolidStyle ? 'text-gray-400 hover:text-gray-700' : 'text-white/40 hover:text-white/70'
               }`}
             >
               <UsFlag />
@@ -124,7 +140,12 @@ export function Header() {
           </div>
 
           <button
-            onClick={() => { trackNavClick('empeza-gratis', 'header'); focusChat(); }}
+            type="button"
+            onClick={() => {
+              trackNavClick('empeza-gratis', 'header');
+              if (isHome) focusChat();
+              else window.location.href = '/';
+            }}
             className="inline-flex items-center cursor-pointer bg-[var(--accent-9)] hover:bg-[var(--accent-10)] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:scale-[1.02] hover:shadow-md shadow-sm"
           >
             {t.header.startFree}
@@ -133,7 +154,10 @@ export function Header() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+            type="button"
+            className={`md:hidden p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+              useSolidStyle ? 'text-gray-600 hover:bg-gray-100' : 'text-white hover:bg-white/10'
+            }`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
           aria-expanded={mobileOpen}
@@ -147,17 +171,36 @@ export function Header() {
       {mobileOpen && (
         <nav id="mobile-nav" role="navigation" aria-label="Menú móvil" className="md:hidden bg-white border-t border-gray-100 px-4 py-5 space-y-3 shadow-lg">
           <button
+            type="button"
             className="block w-full text-left text-sm text-gray-700 font-medium py-2 hover:text-[var(--accent-9)] transition-colors"
-            onClick={() => { setMobileOpen(false); trackNavClick('como-funciona', 'mobile_menu'); scrollTo('como-funciona'); }}
+            onClick={() => {
+              setMobileOpen(false);
+              trackNavClick('como-funciona', 'mobile_menu');
+              if (isHome) scrollTo('como-funciona');
+              else window.location.href = '/#como-funciona';
+            }}
           >
             {t.header.howItWorks}
           </button>
           <button
+            type="button"
             className="block w-full text-left text-sm text-gray-700 font-medium py-2 hover:text-[var(--accent-9)] transition-colors"
-            onClick={() => { setMobileOpen(false); trackNavClick('qualifai', 'mobile_menu'); scrollTo('qualifai'); }}
+            onClick={() => {
+              setMobileOpen(false);
+              trackNavClick('qualifai', 'mobile_menu');
+              if (isHome) scrollTo('qualifai');
+              else window.location.href = '/#qualifai';
+            }}
           >
             {t.header.aboutUs}
           </button>
+          <Link
+            href="/noticias"
+            className="block w-full text-left text-sm text-gray-700 font-medium py-2 hover:text-[var(--accent-9)] transition-colors"
+            onClick={() => { setMobileOpen(false); trackNavClick('noticias', 'mobile_menu'); }}
+          >
+            {t.header.noticias}
+          </Link>
           {/* Language selector — mobile */}
           <div className="flex items-center gap-2 py-1">
             <span className="text-xs text-gray-400 font-medium">Idioma / Language:</span>
@@ -183,8 +226,14 @@ export function Header() {
             </button>
           </div>
           <button
+            type="button"
             className="block w-full text-center bg-[var(--accent-9)] text-white text-sm font-semibold px-5 py-3 rounded-full transition-colors hover:bg-[var(--accent-10)]"
-            onClick={() => { setMobileOpen(false); trackNavClick('empeza-gratis', 'mobile_menu'); scrollToChat(); }}
+            onClick={() => {
+              setMobileOpen(false);
+              trackNavClick('empeza-gratis', 'mobile_menu');
+              if (isHome) scrollToChat();
+              else window.location.href = '/';
+            }}
           >
             {t.header.startFree}
           </button>

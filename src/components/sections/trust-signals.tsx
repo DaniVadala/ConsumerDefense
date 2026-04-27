@@ -1,9 +1,9 @@
 'use client';
 
-import { Shield, Scale, Lock, BookOpen, BadgeCheck, Clock } from 'lucide-react';
+import { Shield, Scale, Lock, BadgeCheck, Clock } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/context';
 
-const SIGNAL_ICONS = [Scale, BookOpen, Lock, BadgeCheck, Clock, Shield];
+const SIGNAL_ICONS = [Scale, Lock, BadgeCheck, Clock, Shield];
 
 export function TrustSignals() {
   const { t } = useLocale();
