@@ -5,7 +5,7 @@ const es = {
     howItWorks: '¿Cómo funciona?',
     aboutUs: 'Sobre nosotros',
     noticias: 'Noticias',
-    startFree: 'Empezá gratis',
+    startFree: 'Empezá ya',
   },
   noticias: {
     pageTitle: 'Noticias y fallos',
@@ -25,7 +25,7 @@ const es = {
     pillImmediate: 'Respuesta inmediata',
     pillConfidential: 'Confidencial',
     pillFree: 'Análisis gratis',
-    ctaButton: 'Empezá tu análisis gratis',
+    ctaButton: 'Empezá tu análisis sin costo inicial',
     ctaButtonReset: 'Nuevo análisis gratuito',
     ctaSubtext: 'Sin registro · Resultado en segundos',
     ctaButtonLimitReached: 'Hablar con un abogado por WhatsApp',
@@ -222,7 +222,7 @@ export const translations: Record<Lang, Translations> = {
       howItWorks: 'How it works',
       aboutUs: 'About us',
       noticias: 'News',
-      startFree: 'Start free',
+      startFree: 'Start now',
     },
     noticias: {
       pageTitle: 'News & case law',

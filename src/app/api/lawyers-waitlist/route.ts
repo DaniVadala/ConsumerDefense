@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getLeadNotifyEmail } from '@/lib/notify-email';
 
 const LawyerSchema = z.object({
   name: z.string().min(2).max(100),
@@ -21,10 +22,10 @@ export async function POST(req: Request) {
     }
 
     const data = parsed.data;
-    const notifyEmail = process.env.LEAD_NOTIFY_EMAIL;
+    const notifyEmail = getLeadNotifyEmail();
     const resendKey = process.env.RESEND_API_KEY;
 
-    if (notifyEmail && resendKey) {
+    if (resendKey) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {

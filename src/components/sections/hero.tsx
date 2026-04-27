@@ -168,7 +168,7 @@ export function Hero() {
                 >
                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                   Diagnóstico inmediato con IA
-                  <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">GRATIS</span>
+                  <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">Sin costo</span>
                 </button>
               </div>
             )}
@@ -338,7 +338,7 @@ export function Hero() {
                       <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                       Diagnóstico inmediato con IA
                       <span className="bg-emerald-400/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">
-                        GRATIS
+                        Sin costo
                       </span>
                     </button>
                   </div>

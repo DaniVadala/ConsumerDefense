@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { Resend } from 'resend';
+import { getLeadNotifyEmail } from '@/lib/notify-email';
 import { extractClientIp } from '@/lib/rate-limiter';
 
 const LeadSchema = z.object({
@@ -49,9 +50,9 @@ export async function POST(req: NextRequest) {
   const { nombre, telefono, email, problema } = parsed.data;
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const notifyEmail = process.env.LEAD_NOTIFY_EMAIL;
+  const notifyEmail = getLeadNotifyEmail();
 
-  if (resendApiKey && notifyEmail) {
+  if (resendApiKey) {
     try {
       const resend = new Resend(resendApiKey);
       await resend.emails.send({

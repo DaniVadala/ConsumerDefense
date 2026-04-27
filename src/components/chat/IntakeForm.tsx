@@ -436,7 +436,8 @@ export function IntakeForm({ extracted, onComplete }: IntakeFormProps) {
               }}
               placeholder={currentConfig.placeholder}
               className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-base sm:text-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                focus:outline-none focus:ring-2 focus:ring-blue-500
+                [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               autoFocus
             />
           </div>

@@ -6,7 +6,7 @@ import { LeadForm } from '../lead-form';
 import { useCalModal } from '../cal-modal';
 import { useLocale } from '@/lib/i18n/context';
 import { trackChatFocus, trackCalModalOpen, trackCalPreload, trackWhatsAppClick, trackEmailClick, trackLeadFormOpen } from '@/lib/analytics';
-import { openMailCompose } from '@/lib/utils';
+import { openMailCompose, scrollToChatAndFocus } from '@/lib/utils';
 
 const WHATSAPP_NUMBER = '5493515284074';
 const CONTACT_EMAIL = 'angelyocca@hotmail.com';
@@ -50,15 +50,7 @@ export function InfoSection() {
             onClick={(e) => {
               e.preventDefault();
               trackChatFocus();
-              const inputs = document.querySelectorAll<HTMLTextAreaElement>('[data-chat-input]');
-              const textarea = Array.from(inputs).find(el => el.offsetParent !== null);
-              if (textarea) {
-                textarea.focus();
-                const rect = textarea.getBoundingClientRect();
-                window.scrollTo({ top: Math.max(0, window.scrollY + rect.bottom - window.innerHeight + 20), behavior: 'smooth' });
-              } else {
-                document.getElementById('chat-widget')?.scrollIntoView({ behavior: 'smooth' });
-              }
+              scrollToChatAndFocus();
             }}
             className="group relative flex flex-col p-5 rounded-2xl bg-gradient-to-br from-[var(--accent-9)] to-[var(--teal-9)] text-white shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-300/50 hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
           >
