@@ -24,7 +24,7 @@ const es = {
     subtitle: 'Entendé tus derechos como consumidor argentino y actuá de inmediato.',
     pillImmediate: 'Respuesta inmediata',
     pillConfidential: 'Confidencial',
-    pillFree: 'Análisis gratis',
+    pillFree: 'Análisis sin costo',
     ctaButton: 'Empezá tu análisis sin costo inicial',
     ctaButtonReset: 'Nuevo análisis gratuito',
     ctaSubtext: 'Sin registro · Resultado en segundos',
@@ -94,7 +94,7 @@ const es = {
     fabTooltipDesc: 'Escribinos directo, respondemos en minutos.',
   },
   chat: {
-    subtitle: 'Orientación gratuita al consumidor',
+    subtitle: 'Orientación inicial al consumidor',
     online: 'En línea',
     live: 'En vivo',
     typing: 'DefensaYa está escribiendo',
@@ -177,7 +177,8 @@ const es = {
   about: {
     pill: 'Quiénes somos',
     title: '¿Qué es SyndesiX?',
-    body: 'SyndesiX es el proyecto con el que desarrollamos herramientas con inteligencia artificial y canales de contacto sencillos, para que cada persona entienda mejor su situación y defina con más criterio el próximo paso. Aquí el foco no es solo ordenar el relato, sino ofrecer una orientación inicial que organice la información y facilite avanzar en el contacto con un profesional de manera más informada. Hoy eso vive en DefensaYa, enfocado en defensa del consumidor en Argentina y en la vinculación con abogados cuando corresponda. Con el tiempo, la misma lógica puede extenderse a otras áreas, siempre acompañando el primer acercamiento a profesionales y sin reemplazar la intervención que exige cada disciplina.',
+    body:
+      'SyndesiX une inteligencia artificial y canales de contacto sencillos para ofrecer orientación inicial: ayuda a ordenar tu situación y a encarar un profesional con más claridad. Eso vive hoy en DefensaYa, enfocado en defensa del consumidor en Argentina y en la vinculación con abogados cuando hace falta; el mismo enfoque podría extenderse a otras áreas, siempre como primer paso y sin reemplazar al especialista.',
     stat1Value: '1ª',
     stat1Label: 'Plataforma que combina IA + omnicanalidad para conectar con abogados reales',
     stat2Value: '5',
@@ -189,7 +190,7 @@ const es = {
   footer: {
     noticiasLink: 'Noticias y fallos',
     tagline:
-      'Orientación gratuita al consumidor argentino. Análisis inmediato con IA y derivación a abogados especializados en defensa del consumidor. Sin registro.',
+      'Orientación inicial al consumidor argentino. Análisis inmediato con IA y derivación a abogados especializados en defensa del consumidor. Sin registro.',
     orgsHeading: 'Organismos',
     legalHeading: 'Marco Legal',
     contactHeading: 'Consultá ahora',
@@ -204,12 +205,12 @@ const es = {
     disclaimerLabel: 'Aviso legal:',
     disclaimerText:
       'DefensaYa es un servicio de orientación automatizada y no constituye asesoramiento legal profesional. La información proporcionada es de carácter informativo y no reemplaza la consulta con un abogado matriculado.',
-    copyright: 'Buenos Aires, Argentina',
+    copyright: 'Córdoba, Argentina',
   },
   prefooter: {
     title: '¿Listo para hablar con un abogado?',
-    subtitle: 'Agendá una consulta gratuita de 15 minutos. Sin compromiso.',
-    cta: 'Agendar consulta gratuita',
+    subtitle: 'Agendá una consulta de 15 minutos sin costo inicial. Sin compromiso.',
+    cta: 'Agendar una consulta ahora',
   },
 };
 
@@ -241,7 +242,7 @@ export const translations: Record<Lang, Translations> = {
       subtitle: 'Understand your consumer rights in Argentina and take action right away.',
       pillImmediate: 'Instant response',
       pillConfidential: 'Confidential',
-      pillFree: 'Free analysis',
+      pillFree: 'No-cost analysis',
       ctaButton: 'Start your free analysis',
       ctaButtonReset: 'New free analysis',
       ctaSubtext: 'No signup · Result in seconds',
@@ -311,7 +312,7 @@ export const translations: Record<Lang, Translations> = {
       fabTooltipDesc: 'Message us directly, we respond in minutes.',
     },
     chat: {
-      subtitle: 'Free consumer guidance',
+      subtitle: 'Initial consumer guidance',
       online: 'Online',
       live: 'Live',
       typing: 'DefensaYa is typing',
@@ -390,7 +391,8 @@ export const translations: Record<Lang, Translations> = {
     about: {
       pill: 'Who we are',
       title: 'What is SyndesiX?',
-      body: 'SyndesiX is the project through which we build tools that combine AI and simple contact channels, so people can better understand their situation and choose their next step with sound judgment. The focus is not just to sort the story, but to offer initial guidance that structures information and makes it easier to reach a professional with a clearer, better-informed starting point. Today that lives in DefensaYa, focused on consumer rights in Argentina and on connecting with attorneys when appropriate. The same approach may extend to other areas over time, always supporting an initial path to professionals without replacing the judgment each profession requires.',
+      body:
+        'SyndesiX combines AI and simple contact channels to deliver initial guidance: it helps you structure your situation and approach a professional with more clarity. Today that shows up in DefensaYa—consumer rights in Argentina and attorney referrals when needed—and the same approach could extend to other fields, always as a first step and never as a substitute for the expert.',
       stat1Value: '1st',
       stat1Label: 'Platform combining AI + omnichannel to connect with real lawyers',
       stat2Value: '5',
@@ -401,7 +403,7 @@ export const translations: Record<Lang, Translations> = {
     },
     footer: {
       noticiasLink: 'News & case law',
-      tagline: 'Free consumer guidance for Argentina. Instant AI analysis and referral to attorneys specialized in consumer rights. No registration.',
+      tagline: 'Initial consumer guidance for Argentina. Instant AI analysis and referral to attorneys specialized in consumer rights. No registration.',
       orgsHeading: 'Agencies',
       legalHeading: 'Legal Framework',
       contactHeading: 'Contact us',
@@ -416,12 +418,12 @@ export const translations: Record<Lang, Translations> = {
       disclaimerLabel: 'Legal notice:',
       disclaimerText:
         'DefensaYa is an automated guidance service and does not constitute professional legal advice. The information provided is for general guidance only and does not replace consultation with a licensed attorney.',
-      copyright: 'Buenos Aires, Argentina',
+      copyright: 'Córdoba, Argentina',
     },
     prefooter: {
       title: 'Ready to talk to a lawyer?',
-      subtitle: 'Schedule a free 15-minute consultation. No commitment.',
-      cta: 'Schedule free consultation',
+      subtitle: 'Schedule a 15-minute consultation at no initial cost. No commitment.',
+      cta: 'Schedule a consultation now',
     },
   },
 };
